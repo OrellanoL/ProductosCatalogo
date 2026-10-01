@@ -190,8 +190,8 @@
                     <label>Seleccionar Promoción:</label>
                     <select id="tipoPromocionSelect">
                         <option value="miercoles">Miércoles - Cuenta DNI (10%)</option>
-                        <option value="jueves" selected>Jueves - Mercado Pago (15%)</option>
-                        <option value="viernes">Viernes - Cuenta DNI (10%)</option>
+                        <option value="jueves">Jueves - Mercado Pago (15%)</option>
+                        <option value="viernes" selected>Viernes - Cuenta Digital (15%)</option>
                     </select>
                 </div>
             </div>
@@ -225,9 +225,11 @@
         const URL_CSV_CATALOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/catalogo.csv';
         const URL_MP_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/mplogo.png';
         const URL_CARREFOUR_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/carrefourexpresslogo.webp';
-        
-        // Logo único de Cuenta DNI + Banco Provincia
         const URL_CUENTA_DNI_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/cuentadnilogo.jpg';
+        
+        // Banners de Viernes
+        const URL_BANNER_VIERNES_SUP = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerviernes_2.jpg';
+        const URL_BANNER_VIERNES_INF = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerviernesabajo_2.jpg';
 
         let catalogoProductos = {}; 
         let productosAEscanear = []; 
@@ -493,23 +495,19 @@
                 cargarImagen(URL_CARREFOUR_LOGO)
             ]);
 
-            // 1. Fondo verde oficial
             ctx.fillStyle = "#77c210";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // 2. Texto del encabezado
             ctx.fillStyle = "#1e1c6b";
             ctx.font = "900 48px sans-serif";
             ctx.textAlign = "center";
             ctx.fillText("HOY MIÉRCOLES CON", canvas.width / 2, 75);
 
-            // 3. Logo único de Cuenta DNI + Banco Provincia
             if (imgCdni) {
                 const w = 340, h = (imgCdni.height / imgCdni.width) * w;
                 ctx.drawImage(imgCdni, (canvas.width / 2) - (w / 2), 95, w, h);
             }
 
-            // 4. Recuadro blanco central
             ctx.fillStyle = "#ffffff";
             ctx.lineWidth = 4;
             ctx.strokeStyle = "#00a3e0";
@@ -518,13 +516,11 @@
             ctx.fill();
             ctx.stroke();
 
-            // 5. Logo Carrefour Express
             if (imgCarrefour) {
                 const w = 110, h = (imgCarrefour.height / imgCarrefour.width) * w;
                 ctx.drawImage(imgCarrefour, 610, 210, w, h);
             }
 
-            // 6. Imagen del producto
             if (imgProducto) {
                 const imgMaxW = 440, imgMaxH = 290;
                 let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
@@ -532,7 +528,6 @@
                 ctx.drawImage(imgProducto, (canvas.width - w) / 2, 340 - (h / 2), w, h);
             }
 
-            // 7. Nombre / Descripción del producto
             ctx.fillStyle = "#000000";
             ctx.textAlign = "left";
             ctx.font = "bold 24px sans-serif";
@@ -553,22 +548,18 @@
             }
             ctx.fillText(linea, 75, y);
 
-            // 8. Precios
             const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
             const precioReg = Math.round(pData.precioRegular);
 
-            // Precio Oferta en rojo
             ctx.fillStyle = "#ff0000";
             ctx.font = "bold 82px sans-serif";
             ctx.textAlign = "center";
             ctx.fillText("$" + precioFinal, 560, 635);
 
-            // Precio Regular en negro
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.fillText("PRECIO REGULAR $" + precioReg, 560, 695);
 
-            // 9. Pie de página
             ctx.fillStyle = "#1e1c6b";
             ctx.font = "900 32px sans-serif";
             ctx.textAlign = "center";
@@ -578,60 +569,58 @@
             return canvas.toDataURL('image/png');
         }
 
-        // --- PLANTILLA 3: VIERNES (Cuenta DNI - 10%) ---
+        // --- PLANTILLA 3: VIERNES (Cuenta Digital - 15% - Banner Sup/Inf + Degradé) ---
         async function crearCartelViernes(pData) {
             const canvas = document.createElement('canvas');
             canvas.width = 800;
             canvas.height = 980;
             const ctx = canvas.getContext('2d');
-            const pctDescuento = 10;
+            const pctDescuento = 15;
 
-            const [imgProducto, imgCdni, imgCarrefour] = await Promise.all([
+            const [imgProducto, imgBannerSup, imgBannerInf, imgCarrefour] = await Promise.all([
                 cargarImagen(pData.fotoUrl),
-                cargarImagen(URL_CUENTA_DNI_LOGO),
+                cargarImagen(URL_BANNER_VIERNES_SUP),
+                cargarImagen(URL_BANNER_VIERNES_INF),
                 cargarImagen(URL_CARREFOUR_LOGO)
             ]);
 
-            // 1. Fondo verde oficial
-            ctx.fillStyle = "#77c210";
+            // 1. Fondo en Degradé (Azul a Violeta)
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#1c2d82');
+            gradient.addColorStop(0.5, '#432371');
+            gradient.addColorStop(1, '#862569');
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // 2. Texto del encabezado
-            ctx.fillStyle = "#1e1c6b";
-            ctx.font = "900 48px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("HOY VIERNES CON", canvas.width / 2, 75);
-
-            // 3. Logo único de Cuenta DNI + Banco Provincia
-            if (imgCdni) {
-                const w = 340, h = (imgCdni.height / imgCdni.width) * w;
-                ctx.drawImage(imgCdni, (canvas.width / 2) - (w / 2), 95, w, h);
+            // 2. Banner Superior
+            if (imgBannerSup) {
+                ctx.drawImage(imgBannerSup, 0, 0, canvas.width, 220);
             }
 
-            // 4. Recuadro blanco central
+            // 3. Recuadro Blanco Central
             ctx.fillStyle = "#ffffff";
             ctx.lineWidth = 4;
             ctx.strokeStyle = "#00a3e0";
             ctx.beginPath();
-            ctx.roundRect(50, 190, 700, 630, 25);
+            ctx.roundRect(50, 240, 700, 580, 25);
             ctx.fill();
             ctx.stroke();
 
-            // 5. Logo Carrefour Express
+            // 4. Logo Carrefour Express
             if (imgCarrefour) {
-                const w = 110, h = (imgCarrefour.height / imgCarrefour.width) * w;
-                ctx.drawImage(imgCarrefour, 610, 210, w, h);
+                const w = 120, h = (imgCarrefour.height / imgCarrefour.width) * w;
+                ctx.drawImage(imgCarrefour, 600, 260, w, h);
             }
 
-            // 6. Imagen del producto
+            // 5. Imagen del producto
             if (imgProducto) {
-                const imgMaxW = 440, imgMaxH = 290;
+                const imgMaxW = 440, imgMaxH = 280;
                 let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
                 let w = imgProducto.width * scale, h = imgProducto.height * scale;
-                ctx.drawImage(imgProducto, (canvas.width - w) / 2, 340 - (h / 2), w, h);
+                ctx.drawImage(imgProducto, (canvas.width - w) / 2, 380 - (h / 2), w, h);
             }
 
-            // 7. Nombre / Descripción del producto
+            // 6. Nombre / Descripción del producto
             ctx.fillStyle = "#000000";
             ctx.textAlign = "left";
             ctx.font = "bold 24px sans-serif";
@@ -652,27 +641,38 @@
             }
             ctx.fillText(linea, 75, y);
 
-            // 8. Precios
+            // 7. Recuadro Mi Carrefour + Precio Oferta
             const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
             const precioReg = Math.round(pData.precioRegular);
 
-            // Precio Oferta en rojo
-            ctx.fillStyle = "#ff0000";
-            ctx.font = "bold 82px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("$" + precioFinal, 560, 635);
+            // Caja oscura
+            ctx.fillStyle = "#1e1432";
+            ctx.fillRect(420, 540, 300, 130);
 
-            // Precio Regular en negro
+            // Logo Mi Carrefour simplificado en blanco
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 32px sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillText("Mi", 430, 585);
+            
+            // Ícono C de Carrefour
+            ctx.font = "bold 26px sans-serif";
+            ctx.fillText("⬡", 435, 625);
+
+            // Precio Oferta
+            ctx.font = "bold 64px sans-serif";
+            ctx.fillText("$" + precioFinal, 480, 625);
+
+            // Precio Regular abajo
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 560, 695);
-
-            // 9. Pie de página
-            ctx.fillStyle = "#1e1c6b";
-            ctx.font = "900 32px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("EXCLUSIVO ABONANDO", canvas.width / 2, 870);
-            ctx.fillText("CON CUENTA DNI", canvas.width / 2, 910);
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 570, 710);
+
+            // 8. Banner Inferior
+            if (imgBannerInf) {
+                ctx.drawImage(imgBannerInf, 0, 830, canvas.width, 150);
+            }
 
             return canvas.toDataURL('image/png');
         }
