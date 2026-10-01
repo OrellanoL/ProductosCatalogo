@@ -257,11 +257,14 @@
         let html5QrcodeScanner = null;
         let escanerActivo = false;
 
+        //function formatearPrecio(valor) {
+            //return new Intl.NumberFormat('es-AR', {
+              //  minimumFractionDigits: 0,
+            //    maximumFractionDigits: 2
+          //  }).format(valor);
+        //}
         function formatearPrecio(valor) {
-            return new Intl.NumberFormat('es-AR', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 2
-            }).format(valor);
+            return Math.round(valor).toString();
         }
 
         window.addEventListener('DOMContentLoaded', () => {
