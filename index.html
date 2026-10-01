@@ -128,6 +128,18 @@
         .item-info strong { display: block; font-size: 0.9rem; }
         .item-info span { font-size: 0.8rem; color: #666; }
 
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: #32164d;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0;
+            user-select: none;
+        }
+
         .item-price-input {
             width: 110px !important;
             text-align: right;
@@ -229,11 +241,9 @@
         const URL_CUENTA_DNI_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/cuentadnilogo.jpg';
         const URL_MI_CARREFOUR_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/micarrefour.jpg';
         
-        // Banners de Viernes
+        // Banners
         const URL_BANNER_VIERNES_SUP = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerviernes_2.jpg';
         const URL_BANNER_VIERNES_INF = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerviernesabajo_2.jpg';
-
-        // Banners de Sábado y Domingo
         const URL_BANNER_SD_SUP = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannersabadoydomingo_2.jpg';
         const URL_BANNER_SD_INF = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannersabadoydomingobajo_2.jpg';
         const URL_BANNER_BANCO_CARREFOUR = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerbancocarrefour_2.jpg';
@@ -344,7 +354,6 @@
             const precio = prompt(`Producto: ${productoBase.producto}\n\nIngresá el Precio Regular actual ($):`, "1000");
             if (precio === null) return;
 
-            // Preguntar si aplica la promoción "Mi Carrefour"
             const esMiCarrefour = confirm("¿Este producto tiene precio exclusivo 'Mi Carrefour'?");
 
             productosAEscanear.push({
@@ -364,9 +373,14 @@
                 contenedor.innerHTML += `
                     <div class="item-row">
                         <div class="item-info">
-                            <strong>${p.producto} ${p.esMiCarrefour ? '<span style="color:#6b21a8; font-size:0.8rem;">(Mi Carrefour)</span>' : ''}</strong>
+                            <strong>${p.producto}</strong>
                             <span>EAN: ${p.ean}</span>
                         </div>
+                        <label class="checkbox-label">
+                            <input type="checkbox" ${p.esMiCarrefour ? 'checked' : ''} 
+                                   onchange="productosAEscanear[${idx}].esMiCarrefour = this.checked">
+                            Mi Carrefour
+                        </label>
                         <input type="number" class="item-price-input" value="${p.precioRegular}" 
                                onchange="productosAEscanear[${idx}].precioRegular = parseFloat(this.value) || 0">
                         <button class="btn-danger" onclick="eliminarProducto(${idx})">✕</button>
@@ -391,24 +405,21 @@
         }
 
         // =========================================================
-        // FUNCIÓN AUXILIAR PARA DIBUJAR PRECIO (ESTÁNDAR O MI CARREFOUR)
+        // DIBUJA EL CUADRO DE PRECIO SEGÚN CORRESPONDA
         // =========================================================
         function dibujarCuadroPrecio(ctx, x, y, ancho, alto, precioFinal, esMiCarrefour, imgMiCarrefour) {
             if (esMiCarrefour) {
-                // --- DISEÑO MI CARREFOUR ---
+                // --- DISEÑO MI CARREFOUR (RECUADRO MORADO CON LOGO) ---
                 const colorMorado = "#32164d";
-                const anchoBarraLogo = Math.round(ancho * 0.28); // 28% para la barra lateral
+                const anchoBarraLogo = Math.round(ancho * 0.28);
                 const anchoCajaBlanca = ancho - anchoBarraLogo;
 
-                // 1. Fondo completo morado
                 ctx.fillStyle = colorMorado;
                 ctx.fillRect(x, y, ancho, alto);
 
-                // 2. Fondo blanco para el precio
                 ctx.fillStyle = "#ffffff";
                 ctx.fillRect(x + anchoBarraLogo, y + 6, anchoCajaBlanca - 6, alto - 12);
 
-                // 3. Logo Mi Carrefour
                 if (imgMiCarrefour) {
                     const margin = 10;
                     const maxW = anchoBarraLogo - margin;
@@ -424,18 +435,17 @@
                     ctx.fillText("Mi", x + anchoBarraLogo / 2, y + alto / 2);
                 }
 
-                // 4. Texto del precio
                 ctx.fillStyle = colorMorado;
                 ctx.font = "bold 70px sans-serif";
                 ctx.textAlign = "center";
                 ctx.fillText("$" + precioFinal, x + anchoBarraLogo + (anchoCajaBlanca / 2), y + (alto / 2) + 24);
 
             } else {
-                // --- DISEÑO ESTÁNDAR ---
-                ctx.fillStyle = "#6b21a8";
+                // --- DISEÑO ESTÁNDAR (TEXTO SIMPLE) ---
+                ctx.fillStyle = "#ff0000";
                 ctx.font = "bold 82px sans-serif";
-                ctx.textAlign = "right";
-                ctx.fillText("$" + precioFinal, x + ancho, y + 60);
+                ctx.textAlign = "center";
+                ctx.fillText("$" + precioFinal, x + (ancho / 2), y + (alto / 2) + 25);
             }
         }
 
@@ -443,7 +453,6 @@
         // PLANTILLAS DE OFERTAS
         // =========================================================
 
-        // --- PLANTILLA 1: JUEVES (Mercado Pago - 15%) ---
         async function crearCartelJueves(pData) {
             const canvas = document.createElement('canvas');
             canvas.width = 800;
@@ -491,13 +500,6 @@
                 ctx.drawImage(imgProducto, (canvas.width - w) / 2, 340 - (h / 2), w, h);
             }
 
-            if (pData.aclaracion) {
-                ctx.fillStyle = "#000000";
-                ctx.font = "bold 20px sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText(pData.aclaracion.toUpperCase(), canvas.width / 2, 510);
-            }
-
             ctx.fillStyle = "#000000";
             ctx.textAlign = "left";
             ctx.font = "bold 24px sans-serif";
@@ -521,12 +523,12 @@
             const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
             const precioReg = Math.round(pData.precioRegular);
 
-            dibujarCuadroPrecio(ctx, 380, 550, 330, 110, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
+            dibujarCuadroPrecio(ctx, 400, 535, 320, 140, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
 
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 545, 710);
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 560, 710);
 
             ctx.font = "bold 22px sans-serif";
             ctx.textAlign = "center";
@@ -537,7 +539,6 @@
             return canvas.toDataURL('image/png');
         }
 
-        // --- PLANTILLA 2: MIÉRCOLES (Cuenta DNI - 10%) ---
         async function crearCartelMiercoles(pData) {
             const canvas = document.createElement('canvas');
             canvas.width = 800;
@@ -608,12 +609,12 @@
             const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
             const precioReg = Math.round(pData.precioRegular);
 
-            dibujarCuadroPrecio(ctx, 380, 550, 330, 110, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
+            dibujarCuadroPrecio(ctx, 400, 535, 320, 140, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
 
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 545, 695);
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 560, 695);
 
             ctx.fillStyle = "#1e1c6b";
             ctx.font = "900 32px sans-serif";
@@ -624,7 +625,6 @@
             return canvas.toDataURL('image/png');
         }
 
-        // --- PLANTILLA 3: VIERNES (Cuenta Digital - 15%) ---
         async function crearCartelViernes(pData) {
             const canvas = document.createElement('canvas');
             canvas.width = 800;
@@ -694,12 +694,12 @@
             const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
             const precioReg = Math.round(pData.precioRegular);
 
-            dibujarCuadroPrecio(ctx, 360, 550, 330, 110, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
+            dibujarCuadroPrecio(ctx, 360, 530, 330, 130, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
 
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
-            ctx.textAlign = "right";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 680, 690);
+            ctx.textAlign = "center";
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 525, 690);
 
             if (imgViernesInf) {
                 ctx.drawImage(imgViernesInf, 0, 810, canvas.width, 170);
@@ -708,7 +708,6 @@
             return canvas.toDataURL('image/png');
         }
 
-        // --- PLANTILLA 4: SÁBADO Y DOMINGO (Cuenta Digital - 10%) ---
         async function crearCartelSabadoDomingo(pData) {
             const canvas = document.createElement('canvas');
             canvas.width = 800;
@@ -779,12 +778,12 @@
             const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
             const precioReg = Math.round(pData.precioRegular);
 
-            dibujarCuadroPrecio(ctx, 360, 550, 330, 110, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
+            dibujarCuadroPrecio(ctx, 360, 520, 330, 130, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
 
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
-            ctx.textAlign = "right";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 680, 700);
+            ctx.textAlign = "center";
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 525, 680);
 
             if (imgSdInf) {
                 ctx.drawImage(imgSdInf, 0, 780, canvas.width, 200);
