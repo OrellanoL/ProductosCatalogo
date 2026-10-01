@@ -191,7 +191,8 @@
                     <select id="tipoPromocionSelect">
                         <option value="miercoles">Miércoles - Cuenta DNI (10%)</option>
                         <option value="jueves">Jueves - Mercado Pago (15%)</option>
-                        <option value="viernes" selected>Viernes - Cuenta Digital (15%)</option>
+                        <option value="viernes">Viernes - Cuenta Digital (15%)</option>
+                        <option value="sabadoDomingo" selected>Sábado y Domingo - Cuenta Digital (10%)</option>
                     </select>
                 </div>
             </div>
@@ -230,6 +231,10 @@
         // Banners de Viernes
         const URL_BANNER_VIERNES_SUP = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerviernes_2.jpg';
         const URL_BANNER_VIERNES_INF = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerviernesabajo_2.jpg';
+
+        // Banners de Sábado y Domingo
+        const URL_BANNER_SD_SUP = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannersabadoydomingo_2.jpg';
+        const URL_BANNER_SD_INF = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannersabadoydomingoabajo_2.jpg';
 
         let catalogoProductos = {}; 
         let productosAEscanear = []; 
@@ -649,13 +654,119 @@
             ctx.fillStyle = "#1e1432";
             ctx.fillRect(420, 540, 300, 130);
 
-            // Logo Mi Carrefour simplificado en blanco
+            // Logo Mi Carrefour
             ctx.fillStyle = "#ffffff";
             ctx.font = "bold 32px sans-serif";
             ctx.textAlign = "left";
             ctx.fillText("Mi", 430, 585);
             
-            // Ícono C de Carrefour
+            ctx.font = "bold 26px sans-serif";
+            ctx.fillText("⬡", 435, 625);
+
+            // Precio Oferta
+            ctx.font = "bold 64px sans-serif";
+            ctx.fillText("$" + precioFinal, 480, 625);
+
+            // Precio Regular abajo
+            ctx.fillStyle = "#000000";
+            ctx.font = "bold 20px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 570, 710);
+
+            // 8. Banner Inferior
+            if (imgBannerInf) {
+                ctx.drawImage(imgBannerInf, 0, 830, canvas.width, 150);
+            }
+
+            return canvas.toDataURL('image/png');
+        }
+
+        // --- PLANTILLA 4: SÁBADO Y DOMINGO (Cuenta Digital - 10% - Banner Sup/Inf + Degradé) ---
+        async function crearCartelSabadoDomingo(pData) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 980;
+            const ctx = canvas.getContext('2d');
+            const pctDescuento = 10;
+
+            const [imgProducto, imgBannerSup, imgBannerInf, imgCarrefour] = await Promise.all([
+                cargarImagen(pData.fotoUrl),
+                cargarImagen(URL_BANNER_SD_SUP),
+                cargarImagen(URL_BANNER_SD_INF),
+                cargarImagen(URL_CARREFOUR_LOGO)
+            ]);
+
+            // 1. Fondo en Degradé (Azul a Violeta)
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#1c2d82');
+            gradient.addColorStop(0.5, '#432371');
+            gradient.addColorStop(1, '#862569');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Banner Superior
+            if (imgBannerSup) {
+                ctx.drawImage(imgBannerSup, 0, 0, canvas.width, 220);
+            }
+
+            // 3. Recuadro Blanco Central
+            ctx.fillStyle = "#ffffff";
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "#00a3e0";
+            ctx.beginPath();
+            ctx.roundRect(50, 240, 700, 580, 25);
+            ctx.fill();
+            ctx.stroke();
+
+            // 4. Logo Carrefour Express
+            if (imgCarrefour) {
+                const w = 120, h = (imgCarrefour.height / imgCarrefour.width) * w;
+                ctx.drawImage(imgCarrefour, 600, 260, w, h);
+            }
+
+            // 5. Imagen del producto
+            if (imgProducto) {
+                const imgMaxW = 440, imgMaxH = 280;
+                let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
+                let w = imgProducto.width * scale, h = imgProducto.height * scale;
+                ctx.drawImage(imgProducto, (canvas.width - w) / 2, 380 - (h / 2), w, h);
+            }
+
+            // 6. Nombre / Descripción del producto
+            ctx.fillStyle = "#000000";
+            ctx.textAlign = "left";
+            ctx.font = "bold 24px sans-serif";
+
+            const palabras = pData.producto.split(" ");
+            let linea = "", y = 570; 
+            const maxAncho = 320;
+
+            for (let n = 0; n < palabras.length; n++) {
+                let testLinea = linea + palabras[n] + " ";
+                if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
+                    ctx.fillText(linea, 75, y);
+                    linea = palabras[n] + " ";
+                    y += 30;
+                } else {
+                    linea = testLinea;
+                }
+            }
+            ctx.fillText(linea, 75, y);
+
+            // 7. Recuadro Mi Carrefour + Precio Oferta (10%)
+            const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
+            const precioReg = Math.round(pData.precioRegular);
+
+            // Caja oscura
+            ctx.fillStyle = "#1e1432";
+            ctx.fillRect(420, 540, 300, 130);
+
+            // Logo Mi Carrefour
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 32px sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillText("Mi", 430, 585);
+            
             ctx.font = "bold 26px sans-serif";
             ctx.fillText("⬡", 435, 625);
 
@@ -695,6 +806,8 @@
                     urlResult = await crearCartelMiercoles(p);
                 } else if (tipoPromocion === 'viernes') {
                     urlResult = await crearCartelViernes(p);
+                } else if (tipoPromocion === 'sabadoDomingo') {
+                    urlResult = await crearCartelSabadoDomingo(p);
                 } else {
                     urlResult = await crearCartelJueves(p);
                 }
