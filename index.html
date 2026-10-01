@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador de Ofertas Masivo</title>
-    <!-- Librería para escanear código de barras con la cámara -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <!-- Librería para generar y descargar PDF en celulares/PC -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
@@ -29,7 +27,7 @@
         }
 
         .card {
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
             background: white;
             padding: 20px;
@@ -124,9 +122,10 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
-        .item-info { flex: 1; }
+        .item-info { flex: 2; min-width: 180px; }
         .item-info strong { display: block; font-size: 0.9rem; }
         .item-info span { font-size: 0.8rem; color: #666; }
 
@@ -142,8 +141,14 @@
             user-select: none;
         }
 
+        .select-promo-item {
+            font-size: 0.8rem !important;
+            padding: 6px !important;
+            width: auto !important;
+        }
+
         .item-price-input {
-            width: 110px !important;
+            width: 100px !important;
             text-align: right;
         }
 
@@ -171,20 +176,10 @@
         }
 
         @media print {
-            .no-print { 
-                display: none !important; 
-            }
-            body { 
-                padding: 0; 
-                background: white; 
-            }
-            @page { 
-                size: A4 portrait; 
-                margin: 0; 
-            }
-            .preview-grid { 
-                display: block !important; 
-            }
+            .no-print { display: none !important; }
+            body { padding: 0; background: white; }
+            @page { size: A4 portrait; margin: 0; }
+            .preview-grid { display: block !important; }
             .preview-grid img {
                 display: block;
                 page-break-after: always;
@@ -203,17 +198,15 @@
         <h1>📱 Generador de Ofertas Online</h1>
         <p class="subtitle">Catálogo sincronizado desde GitHub en tiempo real.</p>
 
-        <!-- ESTADO DEL CATÁLOGO ONLINE -->
         <div class="section-box">
             <label>Estado del Catálogo:</label>
             <div id="statusCatalogo">⏳ Cargando catálogo online...</div>
         </div>
 
-        <!-- SELECCIÓN DE DÍA Y PLANTILLA -->
         <div class="section-box">
             <div class="flex-gap" style="margin-bottom: 12px;">
                 <div style="flex: 1;">
-                    <label>Seleccionar Promoción:</label>
+                    <label>Seleccionar Día / Formato:</label>
                     <select id="tipoPromocionSelect">
                         <option value="miercoles">Miércoles - Cuenta DNI (10%)</option>
                         <option value="jueves">Jueves - Mercado Pago (15%)</option>
@@ -235,7 +228,6 @@
             </div>
         </div>
 
-        <!-- LISTA DE PRODUCTOS SELECCIONADOS -->
         <label>Productos seleccionados hoy (<span id="cantProductos">0</span>):</label>
         <div class="scanned-list" id="listaEscaneados"></div>
 
@@ -249,24 +241,28 @@
     </div>
 
     <script>
-        // URLs Base de Recursos en GitHub
         const URL_CSV_CATALOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/catalogo.csv';
         const URL_MP_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/mplogo.png';
         const URL_CARREFOUR_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/carrefourexpresslogo.webp';
         const URL_CUENTA_DNI_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/cuentadnilogo.jpg';
         const URL_MI_CARREFOUR_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/micarrefour.jpg';
         
-        // Banners
         const URL_BANNER_VIERNES_SUP = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerviernes_2.jpg';
         const URL_BANNER_VIERNES_INF = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerviernesabajo_2.jpg';
         const URL_BANNER_SD_SUP = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannersabadoydomingo_2.jpg';
         const URL_BANNER_SD_INF = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannersabadoydomingobajo_2.jpg';
-        const URL_BANNER_BANCO_CARREFOUR = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerbancocarrefour_2.jpg';
 
         let catalogoProductos = {}; 
         let productosAEscanear = []; 
         let html5QrcodeScanner = null;
         let escanerActivo = false;
+
+        function formatearPrecio(valor) {
+            return new Intl.NumberFormat('es-AR', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }).format(valor);
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             cargarCatalogoDesdeURL();
@@ -274,7 +270,6 @@
 
         async function cargarCatalogoDesdeURL() {
             const statusDiv = document.getElementById('statusCatalogo');
-
             try {
                 const respuesta = await fetch(URL_CSV_CATALOGO);
                 if (!respuesta.ok) throw new Error("No se encontró el archivo catalogo.csv en GitHub");
@@ -293,8 +288,6 @@
                         catalogoProductos[ean] = {
                             ean: ean,
                             producto: cols[1] || "PRODUCTO",
-                            descripcion: cols[2] || "",
-                            aclaracion: cols[3] || "",
                             fotoUrl: cols[4] || `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/${ean}.webp`
                         };
                         contador++;
@@ -303,8 +296,7 @@
 
                 statusDiv.innerHTML = `<span class="status-badge">✓ Catálogo online listo (${contador} productos)</span>`;
             } catch (error) {
-                console.error("Error al cargar catálogo:", error);
-                statusDiv.innerHTML = `<span style="color:red; font-size:0.85rem;">⚠️ Error al conectar con GitHub. Asegúrate de tener subido el archivo <b>catalogo.csv</b> en tu repositorio.</span>`;
+                statusDiv.innerHTML = `<span style="color:red; font-size:0.85rem;">⚠️ Error al conectar con GitHub.</span>`;
             }
         }
 
@@ -333,7 +325,7 @@
                     document.getElementById("reader").style.display = "none";
                     escanerActivo = false;
                     html5QrcodeScanner = null;
-                }).catch(err => console.log(err));
+                });
             }
         }
 
@@ -354,14 +346,12 @@
             let productoBase = catalogoProductos[ean];
 
             if (!productoBase) {
-                const nombreManual = prompt(`El EAN ${ean} no existe en el catálogo online.\n\nIngresá el nombre del producto:`);
+                const nombreManual = prompt(`El EAN ${ean} no existe en el catálogo.\n\nIngresá el nombre:`);
                 if (!nombreManual) return;
 
                 productoBase = {
                     ean: ean,
                     producto: nombreManual.toUpperCase(),
-                    descripcion: "",
-                    aclaracion: "",
                     fotoUrl: `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/${ean}.webp`
                 };
             }
@@ -369,12 +359,11 @@
             const precio = prompt(`Producto: ${productoBase.producto}\n\nIngresá el Precio Regular actual ($):`, "1000");
             if (precio === null) return;
 
-            const esMiCarrefour = confirm("¿Este producto tiene precio exclusivo 'Mi Carrefour'?");
-
             productosAEscanear.push({
                 ...productoBase,
-                precioRegular: parseFloat(precio) || 0,
-                esMiCarrefour: esMiCarrefour
+                precioRegular: parseFloat(precio.replace(',', '.')) || 0,
+                esMiCarrefour: false,
+                promocionSegunda: 'ninguna' // opciones: 'ninguna', '50', '70'
             });
             actualizarListaUI();
         }
@@ -396,7 +385,14 @@
                                    onchange="productosAEscanear[${idx}].esMiCarrefour = this.checked">
                             Mi Carrefour
                         </label>
-                        <input type="number" class="item-price-input" value="${p.precioRegular}" 
+                        <div>
+                            <select class="select-promo-item" onchange="productosAEscanear[${idx}].promocionSegunda = this.value">
+                                <option value="ninguna" ${p.promocionSegunda === 'ninguna' ? 'selected' : ''}>Sin Promo 2do</option>
+                                <option value="50" ${p.promocionSegunda === '50' ? 'selected' : ''}>2do al 50%</option>
+                                <option value="70" ${p.promocionSegunda === '70' ? 'selected' : ''}>2do al 70%</option>
+                            </select>
+                        </div>
+                        <input type="number" step="0.01" class="item-price-input" value="${p.precioRegular}" 
                                onchange="productosAEscanear[${idx}].precioRegular = parseFloat(this.value) || 0">
                         <button class="btn-danger" onclick="eliminarProducto(${idx})">✕</button>
                     </div>
@@ -420,11 +416,22 @@
         }
 
         // =========================================================
-        // DIBUJA EL CUADRO DE PRECIO
+        // DIBUJA EL CUADRO DE PRECIO CON TEXTO DE "LLEVANDO 2" SI APLICA
         // =========================================================
-        function dibujarCuadroPrecio(ctx, x, y, ancho, alto, precioFinal, esMiCarrefour, imgMiCarrefour) {
+        function dibujarCuadroPrecio(ctx, x, y, ancho, alto, precioFinalNum, pData, imgMiCarrefour) {
+            const textoPrecio = "$" + formatearPrecio(precioFinalNum);
+            const esMiCarrefour = pData.esMiCarrefour;
+            const tienePromo2do = pData.promocionSegunda && pData.promocionSegunda !== 'ninguna';
+
+            // Aclaración "LLEVANDO 2 PAGÁS C/U" arriba de la caja si tiene tildada la opción
+            if (tienePromo2do) {
+                ctx.fillStyle = "#d97706";
+                ctx.font = "bold 15px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("LLEVANDO 2 UNIDADES PAGÁS C/U:", x + (ancho / 2), y - 10);
+            }
+
             if (esMiCarrefour) {
-                // --- DISEÑO MI CARREFOUR (RECUADRO MORADO CON LOGO) ---
                 const colorMorado = "#32164d";
                 const anchoBarraLogo = Math.round(ancho * 0.28);
                 const anchoCajaBlanca = ancho - anchoBarraLogo;
@@ -443,35 +450,51 @@
                     let w = imgMiCarrefour.width * scale;
                     let h = imgMiCarrefour.height * scale;
                     ctx.drawImage(imgMiCarrefour, x + (anchoBarraLogo - w) / 2, y + (alto - h) / 2, w, h);
-                } else {
-                    ctx.fillStyle = "#ffffff";
-                    ctx.font = "bold 16px sans-serif";
-                    ctx.textAlign = "center";
-                    ctx.fillText("Mi", x + anchoBarraLogo / 2, y + alto / 2);
                 }
 
                 ctx.fillStyle = colorMorado;
-                ctx.font = "bold 58px sans-serif";
+                let fontSize = 54;
+                if (textoPrecio.length > 8) fontSize = 42;
+                if (textoPrecio.length > 10) fontSize = 36;
+                
+                ctx.font = `bold ${fontSize}px sans-serif`;
                 ctx.textAlign = "center";
-                ctx.fillText("$" + precioFinal, x + anchoBarraLogo + (anchoCajaBlanca / 2), y + (alto / 2) + 20);
+                ctx.fillText(textoPrecio, x + anchoBarraLogo + (anchoCajaBlanca / 2), y + (alto / 2) + (fontSize / 3));
 
             } else {
-                // --- DISEÑO ESTÁNDAR (TEXTO SIMPLE) ---
                 ctx.fillStyle = "#ff0000";
-                ctx.font = "bold 75px sans-serif";
+                let fontSize = 70;
+                if (textoPrecio.length > 8) fontSize = 55;
+                if (textoPrecio.length > 10) fontSize = 45;
+
+                ctx.font = `bold ${fontSize}px sans-serif`;
                 ctx.textAlign = "center";
-                ctx.fillText("$" + precioFinal, x + (ancho / 2), y + (alto / 2) + 22);
+                ctx.fillText(textoPrecio, x + (ancho / 2), y + (alto / 2) + (fontSize / 3));
             }
         }
 
+        // FUNCIÓN CÁLCULO DE DESCUENTOS COMBINADOS
+        function calcularPrecioFinal(pData, pctDia) {
+            let base = pData.precioRegular;
+            
+            // Si tiene promo 2do tildada, calcula el promedio unitario (50% = 25% desc, 70% = 35% desc)
+            if (pData.promocionSegunda === '50') {
+                base = base * 0.75; 
+            } else if (pData.promocionSegunda === '70') {
+                base = base * 0.65; 
+            }
+
+            // Luego aplica el descuento del día seleccinado
+            return base * (1 - pctDia / 100);
+        }
+
         // =========================================================
-        // PLANTILLAS DE OFERTAS
+        // PLANTILLAS DE CARTEL
         // =========================================================
 
         async function crearCartelJueves(pData) {
             const canvas = document.createElement('canvas');
-            canvas.width = 800;
-            canvas.height = 980;
+            canvas.width = 800; canvas.height = 980;
             const ctx = canvas.getContext('2d');
             const pctDescuento = 15;
 
@@ -500,8 +523,7 @@
             ctx.strokeStyle = "#00a3e0";
             ctx.beginPath();
             ctx.roundRect(50, 190, 700, 630, 25);
-            ctx.fill();
-            ctx.stroke();
+            ctx.fill(); ctx.stroke();
 
             if (imgCarrefour) {
                 const w = 110, h = (imgCarrefour.height / imgCarrefour.width) * w;
@@ -521,43 +543,34 @@
 
             const palabras = pData.producto.split(" ");
             let linea = "", y = 570; 
-            const maxAncho = 310;
-
             for (let n = 0; n < palabras.length; n++) {
                 let testLinea = linea + palabras[n] + " ";
-                if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
+                if (ctx.measureText(testLinea).width > 310 && n > 0) {
                     ctx.fillText(linea, 75, y);
-                    linea = palabras[n] + " ";
-                    y += 30;
-                } else {
-                    linea = testLinea;
-                }
+                    linea = palabras[n] + " "; y += 30;
+                } else { linea = testLinea; }
             }
             ctx.fillText(linea, 75, y);
 
-            const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
-            const precioReg = Math.round(pData.precioRegular);
+            const precioFinal = calcularPrecioFinal(pData, pctDescuento);
 
-            dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
+            dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData, imgMiCarrefour);
 
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 575, 700);
+            ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 575, 700);
 
             ctx.font = "bold 22px sans-serif";
-            ctx.textAlign = "center";
             ctx.fillText("Abonando con QR desde el celular,", canvas.width / 2, 865);
             ctx.fillText("EXCLUSIVO DINERO EN CUENTA.", canvas.width / 2, 892);
-            ctx.fillText("COMPRA MINIMA DE $15000", canvas.width / 2, 919);
 
             return canvas.toDataURL('image/png');
         }
 
         async function crearCartelMiercoles(pData) {
             const canvas = document.createElement('canvas');
-            canvas.width = 800;
-            canvas.height = 980;
+            canvas.width = 800; canvas.height = 980;
             const ctx = canvas.getContext('2d');
             const pctDescuento = 10;
 
@@ -582,12 +595,10 @@
             }
 
             ctx.fillStyle = "#ffffff";
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = "#00a3e0";
+            ctx.lineWidth = 4; ctx.strokeStyle = "#00a3e0";
             ctx.beginPath();
             ctx.roundRect(50, 190, 700, 630, 25);
-            ctx.fill();
-            ctx.stroke();
+            ctx.fill(); ctx.stroke();
 
             if (imgCarrefour) {
                 const w = 110, h = (imgCarrefour.height / imgCarrefour.width) * w;
@@ -607,43 +618,34 @@
 
             const palabras = pData.producto.split(" ");
             let linea = "", y = 570; 
-            const maxAncho = 320;
-
             for (let n = 0; n < palabras.length; n++) {
                 let testLinea = linea + palabras[n] + " ";
-                if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
+                if (ctx.measureText(testLinea).width > 320 && n > 0) {
                     ctx.fillText(linea, 75, y);
-                    linea = palabras[n] + " ";
-                    y += 30;
-                } else {
-                    linea = testLinea;
-                }
+                    linea = palabras[n] + " "; y += 30;
+                } else { linea = testLinea; }
             }
             ctx.fillText(linea, 75, y);
 
-            const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
-            const precioReg = Math.round(pData.precioRegular);
+            const precioFinal = calcularPrecioFinal(pData, pctDescuento);
 
-            dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
+            dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData, imgMiCarrefour);
 
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 575, 695);
+            ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 575, 695);
 
             ctx.fillStyle = "#1e1c6b";
             ctx.font = "900 32px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("EXCLUSIVO ABONANDO", canvas.width / 2, 870);
-            ctx.fillText("CON CUENTA DNI", canvas.width / 2, 910);
+            ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DNI", canvas.width / 2, 890);
 
             return canvas.toDataURL('image/png');
         }
 
         async function crearCartelViernes(pData) {
             const canvas = document.createElement('canvas');
-            canvas.width = 800;
-            canvas.height = 980;
+            canvas.width = 800; canvas.height = 980;
             const ctx = canvas.getContext('2d');
             const pctDescuento = 15;
 
@@ -657,22 +659,17 @@
 
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
             gradient.addColorStop(0, '#2e3d92');
-            gradient.addColorStop(0.4, '#4d2371');
             gradient.addColorStop(1, '#621a68');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            if (imgViernesSup) {
-                ctx.drawImage(imgViernesSup, 0, 0, canvas.width, 220);
-            }
+            if (imgViernesSup) ctx.drawImage(imgViernesSup, 0, 0, canvas.width, 220);
 
             ctx.fillStyle = "#ffffff";
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = "#00a3e0";
+            ctx.lineWidth = 4; ctx.strokeStyle = "#00a3e0";
             ctx.beginPath();
             ctx.roundRect(80, 235, 640, 560, 25);
-            ctx.fill();
-            ctx.stroke();
+            ctx.fill(); ctx.stroke();
 
             if (imgCarrefour) {
                 const w = 120, h = (imgCarrefour.height / imgCarrefour.width) * w;
@@ -692,71 +689,56 @@
 
             const palabras = pData.producto.split(" ");
             let linea = "", y = 560; 
-            const maxAncho = 310;
-
             for (let n = 0; n < palabras.length; n++) {
                 let testLinea = linea + palabras[n] + " ";
-                if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
+                if (ctx.measureText(testLinea).width > 310 && n > 0) {
                     ctx.fillText(linea, 110, y);
-                    linea = palabras[n] + " ";
-                    y += 28;
-                } else {
-                    linea = testLinea;
-                }
+                    linea = palabras[n] + " "; y += 28;
+                } else { linea = testLinea; }
             }
             ctx.fillText(linea, 110, y);
 
-            const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
-            const precioReg = Math.round(pData.precioRegular);
+            const precioFinal = calcularPrecioFinal(pData, pctDescuento);
 
-            dibujarCuadroPrecio(ctx, 400, 530, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
+            dibujarCuadroPrecio(ctx, 400, 530, 290, 125, precioFinal, pData, imgMiCarrefour);
 
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 545, 690);
+            ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 545, 690);
 
-            if (imgViernesInf) {
-                ctx.drawImage(imgViernesInf, 0, 810, canvas.width, 170);
-            }
+            if (imgViernesInf) ctx.drawImage(imgViernesInf, 0, 810, canvas.width, 170);
 
             return canvas.toDataURL('image/png');
         }
 
         async function crearCartelSabadoDomingo(pData) {
             const canvas = document.createElement('canvas');
-            canvas.width = 800;
-            canvas.height = 980;
+            canvas.width = 800; canvas.height = 980;
             const ctx = canvas.getContext('2d');
             const pctDescuento = 10;
 
-            const [imgProducto, imgSdSup, imgSdInf, imgCarrefour, imgBancoCarrefour, imgMiCarrefour] = await Promise.all([
+            const [imgProducto, imgSdSup, imgSdInf, imgCarrefour, imgMiCarrefour] = await Promise.all([
                 cargarImagen(pData.fotoUrl),
                 cargarImagen(URL_BANNER_SD_SUP),
                 cargarImagen(URL_BANNER_SD_INF),
                 cargarImagen(URL_CARREFOUR_LOGO),
-                cargarImagen(URL_BANNER_BANCO_CARREFOUR),
                 cargarImagen(URL_MI_CARREFOUR_LOGO)
             ]);
 
             const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
             gradient.addColorStop(0, '#1c2d82');
-            gradient.addColorStop(0.5, '#432371');
             gradient.addColorStop(1, '#862569');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            if (imgSdSup) {
-                ctx.drawImage(imgSdSup, 0, 0, canvas.width, 210);
-            }
+            if (imgSdSup) ctx.drawImage(imgSdSup, 0, 0, canvas.width, 210);
 
             ctx.fillStyle = "#ffffff";
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = "#00a3e0";
+            ctx.lineWidth = 4; ctx.strokeStyle = "#00a3e0";
             ctx.beginPath();
             ctx.roundRect(80, 225, 640, 540, 25);
-            ctx.fill();
-            ctx.stroke();
+            ctx.fill(); ctx.stroke();
 
             if (imgCarrefour) {
                 const w = 120, h = (imgCarrefour.height / imgCarrefour.width) * w;
@@ -776,45 +758,25 @@
 
             const palabras = pData.producto.split(" ");
             let linea = "", y = 540; 
-            const maxAncho = 310;
-
             for (let n = 0; n < palabras.length; n++) {
                 let testLinea = linea + palabras[n] + " ";
-                if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
+                if (ctx.measureText(testLinea).width > 310 && n > 0) {
                     ctx.fillText(linea, 110, y);
-                    linea = palabras[n] + " ";
-                    y += 30;
-                } else {
-                    linea = testLinea;
-                }
+                    linea = palabras[n] + " "; y += 30;
+                } else { linea = testLinea; }
             }
             ctx.fillText(linea, 110, y);
 
-            const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
-            const precioReg = Math.round(pData.precioRegular);
+            const precioFinal = calcularPrecioFinal(pData, pctDescuento);
 
-            dibujarCuadroPrecio(ctx, 400, 520, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
+            dibujarCuadroPrecio(ctx, 400, 520, 290, 125, precioFinal, pData, imgMiCarrefour);
 
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 545, 680);
+            ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 545, 680);
 
-            if (imgSdInf) {
-                ctx.drawImage(imgSdInf, 0, 780, canvas.width, 200);
-            } else {
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "900 24px sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DIGITAL", canvas.width / 2, 815);
-
-                if (imgBancoCarrefour) {
-                    const anchoBanner = 680;
-                    const altoBanner = (imgBancoCarrefour.height / imgBancoCarrefour.width) * anchoBanner;
-                    const xPos = (canvas.width - anchoBanner) / 2;
-                    ctx.drawImage(imgBancoCarrefour, xPos, 840, anchoBanner, altoBanner);
-                }
-            }
+            if (imgSdInf) ctx.drawImage(imgSdInf, 0, 780, canvas.width, 200);
 
             return canvas.toDataURL('image/png');
         }
@@ -856,16 +818,14 @@
 
         function imprimirPC() {
             const imagenes = document.querySelectorAll('#previewGrid img');
-
             if (imagenes.length === 0) {
-                alert("Primero debes generar los carteles haciendo clic en '⚡ Generar Carteles'.");
+                alert("Primero debes generar los carteles.");
                 return;
             }
 
             const ventanaImpresion = window.open('', '_blank');
-
             if (!ventanaImpresion) {
-                alert("Por favor, permite las ventanas emergentes (pop-ups) en tu navegador para poder imprimir.");
+                alert("Por favor, permite las ventanas emergentes (pop-ups).");
                 return;
             }
 
@@ -879,8 +839,7 @@
                         @page { size: A4 portrait; margin: 0; }
                         body { margin: 0; padding: 0; background: white; }
                         img { 
-                            width: 100vw; 
-                            height: 100vh; 
+                            width: 100vw; height: 100vh; 
                             object-fit: contain; 
                             page-break-after: always; 
                             page-break-inside: avoid;
@@ -891,9 +850,7 @@
                 <body>
             `;
 
-            imagenes.forEach(img => {
-                htmlContenido += `<img src="${img.src}">`;
-            });
+            imagenes.forEach(img => { htmlContenido += `<img src="${img.src}">`; });
 
             htmlContenido += `
                     <script>
@@ -903,9 +860,7 @@
                                 window.print();
                             }, 250);
                         };
-                        window.onafterprint = function() {
-                            window.close();
-                        };
+                        window.onafterprint = function() { window.close(); };
                     <\/script>
                 </body>
                 </html>
@@ -918,23 +873,19 @@
 
         async function descargarPDF() {
             const imagenes = document.querySelectorAll('#previewGrid img');
-            
             if (imagenes.length === 0) {
-                alert("Primero debes generar los carteles haciendo clic en '⚡ Generar Carteles'.");
+                alert("Primero debes generar los carteles.");
                 return;
             }
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
-
             const pdfAncho = doc.internal.pageSize.getWidth();
             const pdfAlto = doc.internal.pageSize.getHeight();
 
             for (let i = 0; i < imagenes.length; i++) {
                 if (i > 0) doc.addPage();
-                
-                const imgSrc = imagenes[i].src;
-                doc.addImage(imgSrc, 'PNG', 0, 0, pdfAncho, pdfAlto);
+                doc.addImage(imagenes[i].src, 'PNG', 0, 0, pdfAncho, pdfAlto);
             }
 
             doc.save('carteles_ofertas.pdf');
