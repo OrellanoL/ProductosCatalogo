@@ -234,7 +234,8 @@
 
         // Banners de Sábado y Domingo
         const URL_BANNER_SD_SUP = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannersabadoydomingo_2.jpg';
-        const URL_BANNER_SD_INF = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannersabadoydomingoabajo_2.jpg';
+        const URL_BANNER_SD_INF = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannersabadoydomingobajo_2.jpg';
+        const URL_BANNER_BANCO_CARREFOUR = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerbancocarrefour_2.jpg';
 
         let catalogoProductos = {}; 
         let productosAEscanear = []; 
@@ -667,12 +668,13 @@ async function crearCartelSabadoDomingo(pData) {
     const ctx = canvas.getContext('2d');
     const pctDescuento = 10;
 
-    // Carga síncrona de todas las imágenes
-    const [imgProducto, imgSdSup, imgSdInf, imgCarrefour] = await Promise.all([
+    // Carga paralela de todas las imágenes incluyendo el banner de respaldo de Banco Carrefour
+    const [imgProducto, imgSdSup, imgSdInf, imgCarrefour, imgBancoCarrefour] = await Promise.all([
         cargarImagen(pData.fotoUrl),
         cargarImagen(URL_BANNER_SD_SUP),
         cargarImagen(URL_BANNER_SD_INF),
-        cargarImagen(URL_CARREFOUR_LOGO)
+        cargarImagen(URL_CARREFOUR_LOGO),
+        cargarImagen(URL_BANNER_BANCO_CARREFOUR)
     ]);
 
     // Fondo degradado
@@ -688,7 +690,7 @@ async function crearCartelSabadoDomingo(pData) {
         ctx.drawImage(imgSdSup, 0, 0, canvas.width, 210);
     }
 
-    // Tarjeta Blanca (Ajustada en altura para dejar espacio al banner de abajo)
+    // Tarjeta Blanca
     ctx.fillStyle = "#ffffff";
     ctx.lineWidth = 4;
     ctx.strokeStyle = "#00a3e0";
@@ -697,7 +699,7 @@ async function crearCartelSabadoDomingo(pData) {
     ctx.fill();
     ctx.stroke();
 
-    // Logo Carrefour
+    // Logo Carrefour Express
     if (imgCarrefour) {
         const w = 120, h = (imgCarrefour.height / imgCarrefour.width) * w;
         ctx.drawImage(imgCarrefour, 580, 245, w, h);
@@ -746,15 +748,24 @@ async function crearCartelSabadoDomingo(pData) {
     ctx.textAlign = "right";
     ctx.fillText("PRECIO REGULAR $" + precioReg, 680, 670);
 
-    // BANNER INFERIOR SÁBADO / DOMINGO
+    // --- MANEJO DEL BANNER INFERIOR Y RESPALDO ---
     if (imgSdInf) {
+        // Dibuja el banner principal si carga bien
         ctx.drawImage(imgSdInf, 0, 780, canvas.width, 200);
     } else {
-        // Texto de respaldo si la imagen falla al cargar desde GitHub
+        // RESPALDO: Texto informativo + Banner de Banco Carrefour con QR
         ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 22px sans-serif";
+        ctx.font = "900 24px sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DIGITAL", canvas.width / 2, 880);
+        ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DIGITAL", canvas.width / 2, 815);
+
+        if (imgBancoCarrefour) {
+            // Renderiza el banner del Banco Carrefour (QR + App Store / Play Store)
+            const anchoBanner = 680;
+            const altoBanner = (imgBancoCarrefour.height / imgBancoCarrefour.width) * anchoBanner;
+            const xPos = (canvas.width - anchoBanner) / 2;
+            ctx.drawImage(imgBancoCarrefour, xPos, 840, anchoBanner, altoBanner);
+        }
     }
 
     return canvas.toDataURL('image/png');
