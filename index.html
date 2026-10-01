@@ -268,14 +268,6 @@
         let html5QrcodeScanner = null;
         let escanerActivo = false;
 
-        // FUNCIÓN TÉCNICA PARA FORMATEAR PRECIOS CON HASTA 2 DECIMALES
-        function formatearPrecio(valor) {
-            return new Intl.NumberFormat('es-AR', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 2
-            }).format(valor);
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
             cargarCatalogoDesdeURL();
         });
@@ -381,7 +373,7 @@
 
             productosAEscanear.push({
                 ...productoBase,
-                precioRegular: parseFloat(precio.replace(',', '.')) || 0,
+                precioRegular: parseFloat(precio) || 0,
                 esMiCarrefour: esMiCarrefour
             });
             actualizarListaUI();
@@ -404,7 +396,7 @@
                                    onchange="productosAEscanear[${idx}].esMiCarrefour = this.checked">
                             Mi Carrefour
                         </label>
-                        <input type="number" step="0.01" class="item-price-input" value="${p.precioRegular}" 
+                        <input type="number" class="item-price-input" value="${p.precioRegular}" 
                                onchange="productosAEscanear[${idx}].precioRegular = parseFloat(this.value) || 0">
                         <button class="btn-danger" onclick="eliminarProducto(${idx})">✕</button>
                     </div>
@@ -428,11 +420,9 @@
         }
 
         // =========================================================
-        // DIBUJA EL CUADRO DE PRECIO CON SOPORTE DE DECIMALES Y TAMAÑO ADAPTATIVO
+        // DIBUJA EL CUADRO DE PRECIO
         // =========================================================
-        function dibujarCuadroPrecio(ctx, x, y, ancho, alto, precioFinalNum, esMiCarrefour, imgMiCarrefour) {
-            const textoPrecio = "$" + formatearPrecio(precioFinalNum);
-
+        function dibujarCuadroPrecio(ctx, x, y, ancho, alto, precioFinal, esMiCarrefour, imgMiCarrefour) {
             if (esMiCarrefour) {
                 // --- DISEÑO MI CARREFOUR (RECUADRO MORADO CON LOGO) ---
                 const colorMorado = "#32164d";
@@ -461,27 +451,16 @@
                 }
 
                 ctx.fillStyle = colorMorado;
-                
-                // Ajuste dinámico del tamaño de fuente si el precio es largo (con decimales)
-                let fontSize = 54;
-                if (textoPrecio.length > 8) fontSize = 42;
-                if (textoPrecio.length > 10) fontSize = 36;
-                
-                ctx.font = `bold ${fontSize}px sans-serif`;
+                ctx.font = "bold 58px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(textoPrecio, x + anchoBarraLogo + (anchoCajaBlanca / 2), y + (alto / 2) + (fontSize / 3));
+                ctx.fillText("$" + precioFinal, x + anchoBarraLogo + (anchoCajaBlanca / 2), y + (alto / 2) + 20);
 
             } else {
-                // --- DISEÑO ESTÁNDAR (TEXTO RED CON AJUSTE DINÁMICO) ---
+                // --- DISEÑO ESTÁNDAR (TEXTO SIMPLE) ---
                 ctx.fillStyle = "#ff0000";
-
-                let fontSize = 70;
-                if (textoPrecio.length > 8) fontSize = 55;
-                if (textoPrecio.length > 10) fontSize = 45;
-
-                ctx.font = `bold ${fontSize}px sans-serif`;
+                ctx.font = "bold 75px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(textoPrecio, x + (ancho / 2), y + (alto / 2) + (fontSize / 3));
+                ctx.fillText("$" + precioFinal, x + (ancho / 2), y + (alto / 2) + 22);
             }
         }
 
@@ -556,14 +535,15 @@
             }
             ctx.fillText(linea, 75, y);
 
-            const precioFinal = pData.precioRegular * (1 - pctDescuento / 100);
+            const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
+            const precioReg = Math.round(pData.precioRegular);
 
             dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
 
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 575, 700);
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 575, 700);
 
             ctx.font = "bold 22px sans-serif";
             ctx.textAlign = "center";
@@ -641,14 +621,15 @@
             }
             ctx.fillText(linea, 75, y);
 
-            const precioFinal = pData.precioRegular * (1 - pctDescuento / 100);
+            const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
+            const precioReg = Math.round(pData.precioRegular);
 
             dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
 
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 575, 695);
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 575, 695);
 
             ctx.fillStyle = "#1e1c6b";
             ctx.font = "900 32px sans-serif";
@@ -725,14 +706,15 @@
             }
             ctx.fillText(linea, 110, y);
 
-            const precioFinal = pData.precioRegular * (1 - pctDescuento / 100);
+            const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
+            const precioReg = Math.round(pData.precioRegular);
 
             dibujarCuadroPrecio(ctx, 400, 530, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
 
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 545, 690);
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 545, 690);
 
             if (imgViernesInf) {
                 ctx.drawImage(imgViernesInf, 0, 810, canvas.width, 170);
@@ -808,14 +790,15 @@
             }
             ctx.fillText(linea, 110, y);
 
-            const precioFinal = pData.precioRegular * (1 - pctDescuento / 100);
+            const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
+            const precioReg = Math.round(pData.precioRegular);
 
             dibujarCuadroPrecio(ctx, 400, 520, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
 
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 545, 680);
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 545, 680);
 
             if (imgSdInf) {
                 ctx.drawImage(imgSdInf, 0, 780, canvas.width, 200);
