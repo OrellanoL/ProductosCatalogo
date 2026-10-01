@@ -1,105 +1,508 @@
-// Generación del cartel Canvas con salto de línea automático y ajustes de alineación
-async function crearCartelDinamico(pData, pctDescuento) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 980;
-    const ctx = canvas.getContext('2d');
-
-    const [imgProducto, imgMp, imgCarrefour] = await Promise.all([
-        cargarImagen(pData.fotoUrl),
-        cargarImagen(URL_MP_LOGO),
-        cargarImagen(URL_CARREFOUR_LOGO)
-    ]);
-
-    // Fondo amarillo
-    ctx.fillStyle = "#ffe600";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Header azul
-    ctx.fillStyle = "#001a72";
-    ctx.font = "bold 38px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("HOY JUEVES CON", canvas.width / 2, 55);
-
-    if (imgMp) {
-        const w = 110, h = (imgMp.height / imgMp.width) * w;
-        ctx.drawImage(imgMp, (canvas.width / 2) - (w / 2), 65, w, h);
-    }
-
-    // Recuadro blanco
-    ctx.fillStyle = "#ffffff";
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = "#00a3e0";
-    ctx.beginPath();
-    ctx.roundRect(50, 135, 700, 680, 25);
-    ctx.fill();
-    ctx.stroke();
-
-    if (imgCarrefour) {
-        const w = 90, h = (imgCarrefour.height / imgCarrefour.width) * w;
-        ctx.drawImage(imgCarrefour, 630, 150, w, h);
-    }
-
-    // Imagen del producto
-    if (imgProducto) {
-        const imgMaxW = 460, imgMaxH = 320;
-        let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
-        let w = imgProducto.width * scale, h = imgProducto.height * scale;
-        ctx.drawImage(imgProducto, (canvas.width - w) / 2, 310 - (h / 2), w, h);
-    }
-
-    if (pData.aclaracion) {
-        ctx.fillStyle = "#000000";
-        ctx.font = "bold 20px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(pData.aclaracion.toUpperCase(), canvas.width / 2, 500);
-    }
-
-    // TEXTO DEL PRODUCTO (Alineado a la altura del cartel rojo)
-    ctx.fillStyle = "#000000";
-    ctx.textAlign = "left";
-    ctx.font = "bold 24px sans-serif";
-
-    const palabras = pData.producto.split(" ");
-    let linea = "", y = 570; // Borde superior alineado con el cuadro rojo (y=535)
-    const maxAncho = 310;
-
-    for (let n = 0; n < palabras.length; n++) {
-        let testLinea = linea + palabras[n] + " ";
-        if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
-            ctx.fillText(linea, 75, y);
-            linea = palabras[n] + " ";
-            y += 30; // Salto de línea
-        } else {
-            linea = testLinea;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Ofertas Masivo</title>
+    <!-- Librería para escanear código de barras con la cámara -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        :root {
+            --bg-gray: #f4f4f5;
+            --border-color: #e4e4e7;
+            --primary: #001a72;
         }
-    }
-    ctx.fillText(linea, 75, y);
 
-    // Cartel Rojo y Precios sin separadores de miles ($2700)
-    const posXCartel = 400, anchoCartel = 320; 
-    const centroCartel = posXCartel + (anchoCartel / 2);
-    const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
-    const precioReg = Math.round(pData.precioRegular);
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
 
-    ctx.fillStyle = "#e11d48";
-    ctx.fillRect(posXCartel, 535, anchoCartel, 140);
+        body {
+            background-color: var(--bg-gray);
+            padding: 15px;
+            color: #18181b;
+        }
 
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 78px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("$" + precioFinal, centroCartel, 635);
+        .card {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
 
-    ctx.fillStyle = "#000000";
-    ctx.font = "bold 20px sans-serif";
-    ctx.fillText("PRECIO REGULAR $" + precioReg, centroCartel, 710);
+        h1 {
+            font-size: 1.4rem;
+            margin-bottom: 6px;
+            color: var(--primary);
+        }
 
-    // Pie de página
-    ctx.font = "bold 22px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("Abonando con QR desde el celular,", canvas.width / 2, 875);
-    ctx.fillText("EXCLUSIVO DINERO EN CUENTA.", canvas.width / 2, 902);
-    ctx.fillText("COMPRA MINIMA DE $15000", canvas.width / 2, 929);
+        .subtitle {
+            color: #71717a;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+        }
 
-    return canvas.toDataURL('image/png');
-}
+        .section-box {
+            background: #f8fafc;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 16px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        .flex-gap {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        button {
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-camera { background: #0284c7; color: white; width: 100%; }
+        .btn-manual { background: #3b82f6; color: white; }
+        .btn-calc { background: #000; color: white; flex: 1; }
+        .btn-print { background: #e4e4e7; color: #18181b; flex: 1; }
+        .btn-danger { background: #ef4444; color: white; padding: 6px 10px; font-size: 0.8rem; }
+
+        #reader {
+            width: 100%;
+            max-width: 450px;
+            margin: 10px auto;
+            border-radius: 8px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .scanned-list {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            gap: 10px;
+        }
+
+        .item-info { flex: 1; }
+        .item-info strong { display: block; font-size: 0.9rem; }
+        .item-info span { font-size: 0.8rem; color: #666; }
+
+        .item-price-input {
+            width: 110px !important;
+            text-align: right;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .preview-grid img {
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .status-badge {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #15803d;
+            background: #dcfce7;
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; background: white; }
+            @page { size: A4 portrait; margin: 0; }
+            .preview-grid { display: block; }
+            .preview-grid img {
+                page-break-after: always;
+                width: 100vw;
+                height: 100vh;
+                object-fit: contain;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card no-print">
+        <h1>📱 Generador de Ofertas Online</h1>
+        <p class="subtitle">Catálogo sincronizado desde GitHub en tiempo real.</p>
+
+        <!-- ESTADO DEL CATÁLOGO ONLINE -->
+        <div class="section-box">
+            <label>Estado del Catálogo:</label>
+            <div id="statusCatalogo">⏳ Cargando catálogo online...</div>
+        </div>
+
+        <!-- CONFIGURACIÓN Y ESCÁNER -->
+        <div class="section-box">
+            <div class="flex-gap" style="margin-bottom: 12px;">
+                <div style="flex: 1;">
+                    <label>Descuento (%):</label>
+                    <input type="number" id="descuentoInput" value="10">
+                </div>
+            </div>
+
+            <button class="btn-camera" onclick="alternarCamara()">📷 Escanear Producto con Cámara</button>
+            <div id="reader"></div>
+
+            <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                <label>O ingresar EAN manualmente:</label>
+                <div class="flex-gap">
+                    <input type="text" id="manualEanInput" placeholder="Ej: 7792180144829" style="flex: 1;">
+                    <button class="btn-manual" onclick="buscarEanManual()">Buscar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LISTA DE PRODUCTOS SELECCIONADOS -->
+        <label>Productos seleccionados hoy (<span id="cantProductos">0</span>):</label>
+        <div class="scanned-list" id="listaEscaneados"></div>
+
+        <div class="flex-gap" style="margin-top: 20px;">
+            <button class="btn-calc" onclick="generarTodasLasOfertas()">⚡ Generar Carteles</button>
+            <button class="btn-print" onclick="window.print()">🖨️ Imprimir / PDF</button>
+        </div>
+
+        <div class="preview-grid" id="previewGrid"></div>
+    </div>
+
+    <script>
+        // URLs Base de Recursos en GitHub
+        const URL_CSV_CATALOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/catalogo.csv';
+        const URL_MP_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/mplogo.png';
+        const URL_CARREFOUR_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/carrefourexpresslogo.webp';
+
+        let catalogoProductos = {}; 
+        let productosAEscanear = []; 
+        let html5QrcodeScanner = null;
+        let escanerActivo = false;
+
+        // Carga automática del catálogo al abrir la aplicación
+        window.addEventListener('DOMContentLoaded', () => {
+            cargarCatalogoDesdeURL();
+        });
+
+        async function cargarCatalogoDesdeURL() {
+            const statusDiv = document.getElementById('statusCatalogo');
+
+            try {
+                const respuesta = await fetch(URL_CSV_CATALOGO);
+                if (!respuesta.ok) throw new Error("No se encontró el archivo catalogo.csv en GitHub");
+
+                const text = await respuesta.text();
+                const lineas = text.split('\n');
+                catalogoProductos = {};
+                let contador = 0;
+
+                lineas.forEach((linea, idx) => {
+                    if (idx === 0 || !linea.trim()) return; 
+                    const cols = linea.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                    
+                    if (cols.length >= 2) {
+                        const ean = cols[0];
+                        catalogoProductos[ean] = {
+                            ean: ean,
+                            producto: cols[1] || "PRODUCTO",
+                            descripcion: cols[2] || "",
+                            aclaracion: cols[3] || "",
+                            fotoUrl: cols[4] || `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/${ean}.webp`
+                        };
+                        contador++;
+                    }
+                });
+
+                statusDiv.innerHTML = `<span class="status-badge">✓ Catálogo online listo (${contador} productos)</span>`;
+            } catch (error) {
+                console.error("Error al cargar catálogo:", error);
+                statusDiv.innerHTML = `<span style="color:red; font-size:0.85rem;">⚠️ Error al conectar con GitHub. Asegúrate de tener subido el archivo <b>catalogo.csv</b> en tu repositorio.</span>`;
+            }
+        }
+
+        // Control de la cámara para escaneo
+        function alternarCamara() {
+            const readerDiv = document.getElementById("reader");
+            if (escanerActivo) { detenerCamara(); return; }
+
+            if (Object.keys(catalogoProductos).length === 0) {
+                alert("Aún no se ha cargado el catálogo online o falló la conexión.");
+                return;
+            }
+
+            readerDiv.style.display = "block";
+            html5QrcodeScanner = new Html5Qrcode("reader");
+
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 150 } },
+                onScanSuccess
+            ).catch(err => {
+                alert("Error al abrir la cámara: " + err);
+                readerDiv.style.display = "none";
+            });
+
+            escanerActivo = true;
+        }
+
+        function detenerCamara() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    document.getElementById("reader").style.display = "none";
+                    escanerActivo = false;
+                    html5QrcodeScanner = null;
+                }).catch(err => console.log(err));
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            detenerCamara();
+            procesarEAN(decodedText.trim());
+        }
+
+        function buscarEanManual() {
+            if (Object.keys(catalogoProductos).length === 0) {
+                alert("El catálogo online no está listo.");
+                return;
+            }
+            const ean = document.getElementById('manualEanInput').value.trim();
+            if (ean) {
+                procesarEAN(ean);
+                document.getElementById('manualEanInput').value = '';
+            }
+        }
+
+        function procesarEAN(ean) {
+            let productoBase = catalogoProductos[ean];
+
+            if (!productoBase) {
+                alert(`⚠️ El código EAN ${ean} no existe en tu catálogo online.`);
+                return;
+            }
+
+            const precio = prompt(`Producto: ${productoBase.producto}\n\nIngresá el Precio Regular actual ($):`, "1000");
+            
+            if (precio !== null) {
+                productosAEscanear.push({
+                    ...productoBase,
+                    precioRegular: parseFloat(precio) || 0
+                });
+                actualizarListaUI();
+            }
+        }
+
+        function actualizarListaUI() {
+            const contenedor = document.getElementById('listaEscaneados');
+            document.getElementById('cantProductos').innerText = productosAEscanear.length;
+            contenedor.innerHTML = '';
+
+            productosAEscanear.forEach((p, idx) => {
+                contenedor.innerHTML += `
+                    <div class="item-row">
+                        <div class="item-info">
+                            <strong>${p.producto}</strong>
+                            <span>EAN: ${p.ean}</span>
+                        </div>
+                        <input type="number" class="item-price-input" value="${p.precioRegular}" 
+                               onchange="productosAEscanear[${idx}].precioRegular = parseFloat(this.value) || 0">
+                        <button class="btn-danger" onclick="eliminarProducto(${idx})">✕</button>
+                    </div>
+                `;
+            });
+        }
+
+        function eliminarProducto(idx) {
+            productosAEscanear.splice(idx, 1);
+            actualizarListaUI();
+        }
+
+        function cargarImagen(src) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = src;
+            });
+        }
+
+        // Generación del cartel Canvas con salto de línea y alineación corregida
+        async function crearCartelDinamico(pData, pctDescuento) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 980;
+            const ctx = canvas.getContext('2d');
+
+            const [imgProducto, imgMp, imgCarrefour] = await Promise.all([
+                cargarImagen(pData.fotoUrl),
+                cargarImagen(URL_MP_LOGO),
+                cargarImagen(URL_CARREFOUR_LOGO)
+            ]);
+
+            // Fondo amarillo
+            ctx.fillStyle = "#ffe600";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Header azul
+            ctx.fillStyle = "#001a72";
+            ctx.font = "bold 38px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("HOY JUEVES CON", canvas.width / 2, 55);
+
+            if (imgMp) {
+                const w = 110, h = (imgMp.height / imgMp.width) * w;
+                ctx.drawImage(imgMp, (canvas.width / 2) - (w / 2), 65, w, h);
+            }
+
+            // Recuadro blanco
+            ctx.fillStyle = "#ffffff";
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "#00a3e0";
+            ctx.beginPath();
+            ctx.roundRect(50, 135, 700, 680, 25);
+            ctx.fill();
+            ctx.stroke();
+
+            if (imgCarrefour) {
+                const w = 90, h = (imgCarrefour.height / imgCarrefour.width) * w;
+                ctx.drawImage(imgCarrefour, 630, 150, w, h);
+            }
+
+            // Imagen del producto
+            if (imgProducto) {
+                const imgMaxW = 460, imgMaxH = 320;
+                let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
+                let w = imgProducto.width * scale, h = imgProducto.height * scale;
+                ctx.drawImage(imgProducto, (canvas.width - w) / 2, 310 - (h / 2), w, h);
+            }
+
+            if (pData.aclaracion) {
+                ctx.fillStyle = "#000000";
+                ctx.font = "bold 20px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(pData.aclaracion.toUpperCase(), canvas.width / 2, 500);
+            }
+
+            // TEXTO DEL PRODUCTO (Alineado con el borde superior del cuadro rojo)
+            ctx.fillStyle = "#000000";
+            ctx.textAlign = "left";
+            ctx.font = "bold 24px sans-serif";
+
+            const palabras = pData.producto.split(" ");
+            let linea = "", y = 570; 
+            const maxAncho = 310;
+
+            for (let n = 0; n < palabras.length; n++) {
+                let testLinea = linea + palabras[n] + " ";
+                if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
+                    ctx.fillText(linea, 75, y);
+                    linea = palabras[n] + " ";
+                    y += 30; // Salto de línea
+                } else {
+                    linea = testLinea;
+                }
+            }
+            ctx.fillText(linea, 75, y);
+
+            // Cartel Rojo y Precios sin punto separador ($2700)
+            const posXCartel = 400, anchoCartel = 320; 
+            const centroCartel = posXCartel + (anchoCartel / 2);
+            const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
+            const precioReg = Math.round(pData.precioRegular);
+
+            ctx.fillStyle = "#e11d48";
+            ctx.fillRect(posXCartel, 535, anchoCartel, 140);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 78px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("$" + precioFinal, centroCartel, 635);
+
+            ctx.fillStyle = "#000000";
+            ctx.font = "bold 20px sans-serif";
+            ctx.fillText("PRECIO REGULAR $" + precioReg, centroCartel, 710);
+
+            // Pie de página
+            ctx.font = "bold 22px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Abonando con QR desde el celular,", canvas.width / 2, 875);
+            ctx.fillText("EXCLUSIVO DINERO EN CUENTA.", canvas.width / 2, 902);
+            ctx.fillText("COMPRA MINIMA DE $15000", canvas.width / 2, 929);
+
+            return canvas.toDataURL('image/png');
+        }
+
+        async function generarTodasLasOfertas() {
+            if (productosAEscanear.length === 0) {
+                alert("Escaneá al menos un producto primero.");
+                return;
+            }
+
+            const previewGrid = document.getElementById('previewGrid');
+            previewGrid.innerHTML = 'Generando carteles...';
+
+            const pctDescuento = parseFloat(document.getElementById('descuentoInput').value) || 0;
+            const fragment = document.createDocumentFragment();
+
+            for (let p of productosAEscanear) {
+                const urlResult = await crearCartelDinamico(p, pctDescuento);
+                if (urlResult) {
+                    const img = document.createElement('img');
+                    img.src = urlResult;
+                    fragment.appendChild(img);
+                }
+            }
+
+            previewGrid.innerHTML = '';
+            previewGrid.appendChild(fragment);
+        }
+    </script>
+</body>
+</html>
