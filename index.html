@@ -863,11 +863,17 @@
             }
 
             const ventanaImpresion = window.open('', '_blank');
-            
+
+            if (!ventanaImpresion) {
+                alert("Por favor, permite las ventanas emergentes (pop-ups) en tu navegador para poder imprimir.");
+                return;
+            }
+
             let htmlContenido = `
                 <!DOCTYPE html>
-                <html>
+                <html lang="es">
                 <head>
+                    <meta charset="UTF-8">
                     <title>Imprimir Carteles</title>
                     <style>
                         @page { size: A4 portrait; margin: 0; }
@@ -890,18 +896,24 @@
             });
 
             htmlContenido += `
+                    <script>
+                        window.onload = function() {
+                            setTimeout(function() {
+                                window.focus();
+                                window.print();
+                            }, 250);
+                        };
+                        window.onafterprint = function() {
+                            window.close();
+                        };
+                    <\/script>
                 </body>
                 </html>
             `;
 
+            ventanaImpresion.document.open();
             ventanaImpresion.document.write(htmlContenido);
             ventanaImpresion.document.close();
-
-            ventanaImpresion.onload = function() {
-                ventanaImpresion.focus();
-                ventanaImpresion.print();
-                ventanaImpresion.close();
-            };
         }
 
         async function descargarPDF() {
