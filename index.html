@@ -421,14 +421,14 @@
         // =========================================================
         // DIBUJA EL CUADRO DE PRECIO CON TEXTO DE "LLEVANDO 2" SI APLICA
         // =========================================================
-        function dibujarCuadroPrecio(ctx, x, y, ancho, alto, precioFinalNum, pData, imgMiCarrefour) {
+        function dibujarCuadroPrecio(ctx, x, y, ancho, alto, precioFinalNum, pData, imgMiCarrefour, esJueves = false) {
             const textoPrecio = "$" + formatearPrecio(precioFinalNum);
             const esMiCarrefour = pData.esMiCarrefour;
             const tienePromo2do = pData.promocionSegunda && pData.promocionSegunda !== 'ninguna';
 
-            // Aclaración "LLEVANDO 2 PAGÁS C/U" arriba de la caja si tiene tildada la opción
+            // Aclaración "LLEVANDO 2 PAGÁS C/U" arriba de la caja
             if (tienePromo2do) {
-                ctx.fillStyle = "#ff0000";
+                ctx.fillStyle = "#000000";
                 ctx.font = "bold 15px sans-serif";
                 ctx.textAlign = "center";
                 ctx.fillText("LLEVANDO 2 UNIDADES PAGÁS C/U:", x + (ancho / 2), y - 10);
@@ -465,17 +465,28 @@
                 ctx.fillText(textoPrecio, x + anchoBarraLogo + (anchoCajaBlanca / 2), y + (alto / 2) + (fontSize / 3));
 
             } else {
-                ctx.fillStyle = "#ff0000";
                 let fontSize = 70;
                 if (textoPrecio.length > 8) fontSize = 55;
                 if (textoPrecio.length > 10) fontSize = 45;
 
-                ctx.font = `bold ${fontSize}px sans-serif`;
-                ctx.textAlign = "center";
-                ctx.fillText(textoPrecio, x + (ancho / 2), y + (alto / 2) + (fontSize / 3));
+                // SI ES JUEVES: Recuadro rojo con letras blancas
+                if (esJueves) {
+                    ctx.fillStyle = "#ff0000";
+                    ctx.fillRect(x, y, ancho, alto);
+
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = `bold ${fontSize}px sans-serif`;
+                    ctx.textAlign = "center";
+                    ctx.fillText(textoPrecio, x + (ancho / 2), y + (alto / 2) + (fontSize / 3));
+                } else {
+                    // OTROS DÍAS: Solo texto en rojo sin fondo
+                    ctx.fillStyle = "#ff0000";
+                    ctx.font = `bold ${fontSize}px sans-serif`;
+                    ctx.textAlign = "center";
+                    ctx.fillText(textoPrecio, x + (ancho / 2), y + (alto / 2) + (fontSize / 3));
+                }
             }
         }
-
         // FUNCIÓN CÁLCULO DE DESCUENTOS COMBINADOS
         function calcularPrecioFinal(pData, pctDia) {
             let base = pData.precioRegular;
@@ -557,8 +568,7 @@
 
             const precioFinal = calcularPrecioFinal(pData, pctDescuento);
 
-            dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData, imgMiCarrefour);
-
+            dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData, imgMiCarrefour, true);
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
