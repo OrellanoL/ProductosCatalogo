@@ -659,19 +659,23 @@ async function crearCartelViernes(pData) {
     ctx.font = "bold 20px sans-serif";
     ctx.textAlign = "right";
     ctx.fillText("PRECIO REGULAR $" + precioReg, 680, 700);
-
-    // 8. Texto Promocional Inferior sobre el degradé
+// 8. Texto Promocional Inferior (Subido unos píxeles para dejar lugar al banner)
     ctx.fillStyle = "#ffffff";
-    ctx.font = "900 24px sans-serif";
+    ctx.font = "900 22px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DIGITAL", canvas.width / 2, 848);
+    ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DIGITAL", canvas.width / 2, 835);
 
-    // 9. Banner Inferior (Perfecatmente centrado y pegado abajo)
+    // 9. Banner Inferior Modificado
     if (imgBannerInf) {
-        ctx.drawImage(imgBannerInf, 0, canvas.height - 105, canvas.width, 105);
+        const altoBanner = 125; // 👈 1. Aumenta o disminuye la altura (antes era 105)
+        const posicionY = 850;   // 👈 2. Controla qué tan arriba/abajo se dibuja (antes era canvas.height - 105 = 875)
+        
+        ctx.drawImage(imgBannerInf, 0, posicionY, canvas.width, altoBanner);
     }
 
     return canvas.toDataURL('image/png');
+    
+    
 }
         // --- PLANTILLA 4: SÁBADO Y DOMINGO (Cuenta Digital - 10%) ---
         async function crearCartelSabadoDomingo(pData) {
