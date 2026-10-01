@@ -1,4 +1,227 @@
-<script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Ofertas Masivo</title>
+    <!-- Librería para escanear código de barras con la cámara -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        :root {
+            --bg-gray: #f4f4f5;
+            --border-color: #e4e4e7;
+            --primary: #001a72;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-gray);
+            padding: 15px;
+            color: #18181b;
+        }
+
+        .card {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            margin-bottom: 6px;
+            color: var(--primary);
+        }
+
+        .subtitle {
+            color: #71717a;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+        }
+
+        .section-box {
+            background: #f8fafc;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 16px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            background: white;
+        }
+
+        .flex-gap {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        button {
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-camera { background: #0284c7; color: white; width: 100%; }
+        .btn-manual { background: #3b82f6; color: white; }
+        .btn-calc { background: #000; color: white; flex: 1; }
+        .btn-print { background: #e4e4e7; color: #18181b; flex: 1; }
+        .btn-danger { background: #ef4444; color: white; padding: 6px 10px; font-size: 0.8rem; }
+
+        #reader {
+            width: 100%;
+            max-width: 450px;
+            margin: 10px auto;
+            border-radius: 8px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .scanned-list {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            gap: 10px;
+        }
+
+        .item-info { flex: 1; }
+        .item-info strong { display: block; font-size: 0.9rem; }
+        .item-info span { font-size: 0.8rem; color: #666; }
+
+        .item-price-input {
+            width: 110px !important;
+            text-align: right;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .preview-grid img {
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .status-badge {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #15803d;
+            background: #dcfce7;
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; background: white; }
+            @page { size: A4 portrait; margin: 0; }
+            .preview-grid { display: block; }
+            .preview-grid img {
+                page-break-after: always;
+                width: 100vw;
+                height: 100vh;
+                object-fit: contain;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card no-print">
+        <h1>📱 Generador de Ofertas Online</h1>
+        <p class="subtitle">Catálogo sincronizado desde GitHub en tiempo real.</p>
+
+        <!-- ESTADO DEL CATÁLOGO ONLINE -->
+        <div class="section-box">
+            <label>Estado del Catálogo:</label>
+            <div id="statusCatalogo">⏳ Cargando catálogo online...</div>
+        </div>
+
+        <!-- SELECCIÓN DE DÍA Y PLANTILLA -->
+        <div class="section-box">
+            <div class="flex-gap" style="margin-bottom: 12px;">
+                <div style="flex: 1;">
+                    <label>Seleccionar Promoción:</label>
+                    <select id="tipoPromocionSelect">
+                        <option value="miercoles">Miércoles - Cuenta DNI (10%)</option>
+                        <option value="jueves">Jueves - Mercado Pago (15%)</option>
+                        <option value="viernes">Viernes - Cuenta Digital (15%)</option>
+                        <option value="sabadoDomingo" selected>Sábado y Domingo - Cuenta Digital (10%)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-camera" onclick="alternarCamara()">📷 Escanear Producto con Cámara</button>
+            <div id="reader"></div>
+
+            <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                <label>O ingresar EAN manualmente:</label>
+                <div class="flex-gap">
+                    <input type="text" id="manualEanInput" placeholder="Ej: 7792180144829" style="flex: 1;">
+                    <button class="btn-manual" onclick="buscarEanManual()">Buscar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LISTA DE PRODUCTOS SELECCIONADOS -->
+        <label>Productos seleccionados hoy (<span id="cantProductos">0</span>):</label>
+        <div class="scanned-list" id="listaEscaneados"></div>
+
+        <div class="flex-gap" style="margin-top: 20px;">
+            <button class="btn-calc" onclick="generarTodasLasOfertas()">⚡ Generar Carteles</button>
+            <button class="btn-print" onclick="window.print()">🖨 Imprimir / PDF</button>
+        </div>
+
+        <div class="preview-grid" id="previewGrid"></div>
+    </div>
+
+    <script>
         // URLs Base de Recursos en GitHub
         const URL_CSV_CATALOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/catalogo.csv';
         const URL_MP_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/mplogo.png';
@@ -103,7 +326,6 @@
         function procesarEAN(ean) {
             let productoBase = catalogoProductos[ean];
 
-            // Si el EAN no existe o no cargó el catálogo, permite ingreso de nombre manual
             if (!productoBase) {
                 const nombreManual = prompt(`El EAN ${ean} no existe en el catálogo online.\n\nIngresá el nombre del producto:`);
                 if (!nombreManual) return;
@@ -562,3 +784,5 @@
             previewGrid.appendChild(fragment);
         }
     </script>
+</body>
+</html>S
