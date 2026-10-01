@@ -575,105 +575,104 @@
         }
 
         // --- PLANTILLA 3: VIERNES (Cuenta Digital - 15%) ---
-        async function crearCartelViernes(pData) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 800;
-            canvas.height = 980;
-            const ctx = canvas.getContext('2d');
-            const pctDescuento = 15;
+async function crearCartelViernes(pData) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 980;
+    const ctx = canvas.getContext('2d');
+    const pctDescuento = 15;
 
-            const [imgProducto, imgBannerSup, imgBannerInf, imgCarrefour] = await Promise.all([
-                cargarImagen(pData.fotoUrl),
-                cargarImagen(URL_BANNER_VIERNES_SUP),
-                cargarImagen(URL_BANNER_VIERNES_INF),
-                cargarImagen(URL_CARREFOUR_LOGO)
-            ]);
+    const [imgProducto, imgBannerSup, imgBannerInf, imgCarrefour] = await Promise.all([
+        cargarImagen(pData.fotoUrl),
+        cargarImagen(URL_BANNER_VIERNES_SUP),
+        cargarImagen(URL_BANNER_VIERNES_INF),
+        cargarImagen(URL_CARREFOUR_LOGO)
+    ]);
 
-            // 1. Fondo en Degradé (Azul a Violeta)
-            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            gradient.addColorStop(0, '#1c2d82');
-            gradient.addColorStop(0.5, '#432371');
-            gradient.addColorStop(1, '#862569');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // 1. Fondo en Degradé ajustado (Transición azul/púrpura idéntica al modelo)
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#2e3d92');
+    gradient.addColorStop(0.4, '#4d2371');
+    gradient.addColorStop(1, '#621a68');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // 2. Banner Superior
-            if (imgBannerSup) {
-                ctx.drawImage(imgBannerSup, 0, 0, canvas.width, 230);
-            }
+    // 2. Banner Superior
+    if (imgBannerSup) {
+        ctx.drawImage(imgBannerSup, 0, 0, canvas.width, 230);
+    }
 
-            // 3. Recuadro Blanco Central
-            ctx.fillStyle = "#ffffff";
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = "#00a3e0";
-            ctx.beginPath();
-            ctx.roundRect(90, 240, 620, 580, 25);
-            ctx.fill();
-            ctx.stroke();
+    // 3. Recuadro Blanco Central
+    ctx.fillStyle = "#ffffff";
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "#00a3e0";
+    ctx.beginPath();
+    ctx.roundRect(80, 240, 640, 570, 25);
+    ctx.fill();
+    ctx.stroke();
 
-            // 4. Logo Carrefour Express
-            if (imgCarrefour) {
-                const w = 120, h = (imgCarrefour.height / imgCarrefour.width) * w;
-                ctx.drawImage(imgCarrefour, 560, 260, w, h);
-            }
+    // 4. Logo Carrefour Express
+    if (imgCarrefour) {
+        const w = 120, h = (imgCarrefour.height / imgCarrefour.width) * w;
+        ctx.drawImage(imgCarrefour, 580, 260, w, h);
+    }
 
-            // 5. Imagen del producto
-            if (imgProducto) {
-                const imgMaxW = 400, imgMaxH = 260;
-                let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
-                let w = imgProducto.width * scale, h = imgProducto.height * scale;
-                ctx.drawImage(imgProducto, (canvas.width - w) / 2, 380 - (h / 2), w, h);
-            }
+    // 5. Imagen del Producto (Más grande para destacar mejor)
+    if (imgProducto) {
+        const imgMaxW = 460, imgMaxH = 310;
+        let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
+        let w = imgProducto.width * scale, h = imgProducto.height * scale;
+        ctx.drawImage(imgProducto, (canvas.width - w) / 2, 400 - (h / 2), w, h);
+    }
 
-            // 6. Nombre / Descripción del producto
-            ctx.fillStyle = "#000000";
-            ctx.textAlign = "left";
-            ctx.font = "bold 24px sans-serif";
+    // 6. Nombre / Descripción del producto
+    ctx.fillStyle = "#000000";
+    ctx.textAlign = "left";
+    ctx.font = "bold 23px sans-serif";
 
-            const palabras = pData.producto.split(" ");
-            let linea = "", y = 570; 
-            const maxAncho = 300;
+    const palabras = pData.producto.split(" ");
+    let linea = "", y = 570; 
+    const maxAncho = 310;
 
-            for (let n = 0; n < palabras.length; n++) {
-                let testLinea = linea + palabras[n] + " ";
-                if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
-                    ctx.fillText(linea, 110, y);
-                    linea = palabras[n] + " ";
-                    y += 30;
-                } else {
-                    linea = testLinea;
-                }
-            }
+    for (let n = 0; n < palabras.length; n++) {
+        let testLinea = linea + palabras[n] + " ";
+        if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
             ctx.fillText(linea, 110, y);
-
-            // 7. Precio Oferta (Violeta sobre Fondo Blanco)
-            const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
-            const precioReg = Math.round(pData.precioRegular);
-
-            ctx.fillStyle = "#6b21a8";
-            ctx.font = "bold 82px sans-serif";
-            ctx.textAlign = "right";
-            ctx.fillText("$" + precioFinal, 670, 640);
-
-            ctx.fillStyle = "#000000";
-            ctx.font = "bold 20px sans-serif";
-            ctx.textAlign = "right";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 670, 700);
-
-            // 8. Texto Promocional Inferior sobre degradé
-            //ctx.fillStyle = "#ffffff";
-            //ctx.font = "900 24px sans-serif";
-            //ctx.textAlign = "center";
-            //ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DIGITAL", canvas.width / 2, 850);
-
-            // 9. Banner Inferior
-            if (imgBannerInf) {
-                ctx.drawImage(imgBannerInf, 0, 875, canvas.width, 105);
-            }
-
-            return canvas.toDataURL('image/png');
+            linea = palabras[n] + " ";
+            y += 28;
+        } else {
+            linea = testLinea;
         }
+    }
+    ctx.fillText(linea, 110, y);
 
+    // 7. Precio Oferta (Violeta sobre Fondo Blanco)
+    const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
+    const precioReg = Math.round(pData.precioRegular);
+
+    ctx.fillStyle = "#6b21a8";
+    ctx.font = "bold 84px sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText("$" + precioFinal, 680, 645);
+
+    ctx.fillStyle = "#000000";
+    ctx.font = "bold 20px sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText("PRECIO REGULAR $" + precioReg, 680, 700);
+
+    // 8. Texto Promocional Inferior sobre el degradé
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 24px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DIGITAL", canvas.width / 2, 848);
+
+    // 9. Banner Inferior (Perfecatmente centrado y pegado abajo)
+    if (imgBannerInf) {
+        ctx.drawImage(imgBannerInf, 0, canvas.height - 105, canvas.width, 105);
+    }
+
+    return canvas.toDataURL('image/png');
+}
         // --- PLANTILLA 4: SÁBADO Y DOMINGO (Cuenta Digital - 10%) ---
         async function crearCartelSabadoDomingo(pData) {
             const canvas = document.createElement('canvas');
