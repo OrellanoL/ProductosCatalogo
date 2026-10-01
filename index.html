@@ -241,7 +241,7 @@
 
         <div class="flex-gap" style="margin-top: 20px;">
             <button class="btn-calc" onclick="generarTodasLasOfertas()">⚡ Generar Carteles</button>
-            <button class="btn-print" onclick="window.print()">🖨 Imprimir (PC)</button>
+            <button class="btn-print" onclick="imprimirPC()">🖨 Imprimir (PC)</button>
             <button class="btn-manual" style="background: #16a34a;" onclick="descargarPDF()">📥 Descargar PDF (Móvil / PC)</button>
         </div>
 
@@ -852,6 +852,56 @@
 
             previewGrid.innerHTML = '';
             previewGrid.appendChild(fragment);
+        }
+
+        function imprimirPC() {
+            const imagenes = document.querySelectorAll('#previewGrid img');
+
+            if (imagenes.length === 0) {
+                alert("Primero debes generar los carteles haciendo clic en '⚡ Generar Carteles'.");
+                return;
+            }
+
+            const ventanaImpresion = window.open('', '_blank');
+            
+            let htmlContenido = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Imprimir Carteles</title>
+                    <style>
+                        @page { size: A4 portrait; margin: 0; }
+                        body { margin: 0; padding: 0; background: white; }
+                        img { 
+                            width: 100vw; 
+                            height: 100vh; 
+                            object-fit: contain; 
+                            page-break-after: always; 
+                            page-break-inside: avoid;
+                            display: block;
+                        }
+                    </style>
+                </head>
+                <body>
+            `;
+
+            imagenes.forEach(img => {
+                htmlContenido += `<img src="${img.src}">`;
+            });
+
+            htmlContenido += `
+                </body>
+                </html>
+            `;
+
+            ventanaImpresion.document.write(htmlContenido);
+            ventanaImpresion.document.close();
+
+            ventanaImpresion.onload = function() {
+                ventanaImpresion.focus();
+                ventanaImpresion.print();
+                ventanaImpresion.close();
+            };
         }
 
         async function descargarPDF() {
