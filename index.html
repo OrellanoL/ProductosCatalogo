@@ -372,112 +372,129 @@
                 img.src = src;
             });
         }
+// Generación del cartel Canvas con encabezado amplio y bien separado
+async function crearCartelDinamico(pData, pctDescuento) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 980;
+    const ctx = canvas.getContext('2d');
 
-        // Generación del cartel Canvas con salto de línea y alineación corregida
-        async function crearCartelDinamico(pData, pctDescuento) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 800;
-            canvas.height = 980;
-            const ctx = canvas.getContext('2d');
+    const [imgProducto, imgMp, imgCarrefour] = await Promise.all([
+        cargarImagen(pData.fotoUrl),
+        cargarImagen(URL_MP_LOGO),
+        cargarImagen(URL_CARREFOUR_LOGO)
+    ]);
 
-            const [imgProducto, imgMp, imgCarrefour] = await Promise.all([
-                cargarImagen(pData.fotoUrl),
-                cargarImagen(URL_MP_LOGO),
-                cargarImagen(URL_CARREFOUR_LOGO)
-            ]);
+    // Fondo amarillo
+    ctx.fillStyle = "#ffe600";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Fondo amarillo
-            ctx.fillStyle = "#ffe600";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // 1. HEADER: Texto "HOY JUEVES CON" arriba y con tipografía más grande
+    ctx.fillStyle = "#001a72";
+    ctx.font = "900 48px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("HOY JUEVES CON", canvas.width / 2, 75);
 
-            // Header azul
-            ctx.fillStyle = "#001a72";
-            ctx.font = "bold 38px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("HOY JUEVES CON", canvas.width / 2, 55);
+    // Logo Mercado Pago justo debajo del texto
+    if (imgMp) {
+        const w = 150, h = (imgMp.height / imgMp.width) * w;
+        ctx.drawImage(imgMp, (canvas.width / 2) - (w / 2), 95, w, h);
+    }
 
-            if (imgMp) {
-                const w = 110, h = (imgMp.height / imgMp.width) * w;
-                ctx.drawImage(imgMp, (canvas.width / 2) - (w / 2), 65, w, h);
-            }
+    // 2. RECUADRO BLANCO (Movido más abajo en y=190 para dar espacio al logo)
+    ctx.fillStyle = "#ffffff";
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "#00a3e0";
+    ctx.beginPath();
+    ctx.roundRect(50, 190, 700, 630, 25);
+    ctx.fill();
+    ctx.stroke();
 
-            // Recuadro blanco
-            ctx.fillStyle = "#ffffff";
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = "#00a3e0";
-            ctx.beginPath();
-            ctx.roundRect(50, 135, 700, 680, 25);
-            ctx.fill();
-            ctx.stroke();
+    // Logo Carrefour Express dentro del recuadro blanco
+    if (imgCarrefour) {
+        const w = 110, h = (imgCarrefour.height / imgCarrefour.width) * w;
+        ctx.drawImage(imgCarrefour, 610, 210, w, h);
+    }
 
-            if (imgCarrefour) {
-                const w = 90, h = (imgCarrefour.height / imgCarrefour.width) * w;
-                ctx.drawImage(imgCarrefour, 630, 150, w, h);
-            }
+    // Círculo o etiqueta de Descuento (Si aplica)
+    if (pctDescuento > 0) {
+        ctx.fillStyle = "#e11d48";
+        ctx.beginPath();
+        ctx.arc(130, 240, 42, 0, 2 * Math.PI);
+        ctx.fill();
 
-            // Imagen del producto
-            if (imgProducto) {
-                const imgMaxW = 460, imgMaxH = 320;
-                let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
-                let w = imgProducto.width * scale, h = imgProducto.height * scale;
-                ctx.drawImage(imgProducto, (canvas.width - w) / 2, 310 - (h / 2), w, h);
-            }
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 22px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(`${pctDescuento}%`, 130, 238);
+        ctx.font = "bold 11px sans-serif";
+        ctx.fillText("DESCUENTO", 130, 253);
+    }
 
-            if (pData.aclaracion) {
-                ctx.fillStyle = "#000000";
-                ctx.font = "bold 20px sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText(pData.aclaracion.toUpperCase(), canvas.width / 2, 500);
-            }
+    // Imagen del producto
+    if (imgProducto) {
+        const imgMaxW = 440, imgMaxH = 290;
+        let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
+        let w = imgProducto.width * scale, h = imgProducto.height * scale;
+        ctx.drawImage(imgProducto, (canvas.width - w) / 2, 340 - (h / 2), w, h);
+    }
 
-            // TEXTO DEL PRODUCTO (Alineado con el borde superior del cuadro rojo)
-            ctx.fillStyle = "#000000";
-            ctx.textAlign = "left";
-            ctx.font = "bold 24px sans-serif";
+    if (pData.aclaracion) {
+        ctx.fillStyle = "#000000";
+        ctx.font = "bold 20px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(pData.aclaracion.toUpperCase(), canvas.width / 2, 510);
+    }
 
-            const palabras = pData.producto.split(" ");
-            let linea = "", y = 570; 
-            const maxAncho = 310;
+    // TEXTO DEL PRODUCTO
+    ctx.fillStyle = "#000000";
+    ctx.textAlign = "left";
+    ctx.font = "bold 24px sans-serif";
 
-            for (let n = 0; n < palabras.length; n++) {
-                let testLinea = linea + palabras[n] + " ";
-                if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
-                    ctx.fillText(linea, 75, y);
-                    linea = palabras[n] + " ";
-                    y += 30; // Salto de línea
-                } else {
-                    linea = testLinea;
-                }
-            }
+    const palabras = pData.producto.split(" ");
+    let linea = "", y = 570; 
+    const maxAncho = 310;
+
+    for (let n = 0; n < palabras.length; n++) {
+        let testLinea = linea + palabras[n] + " ";
+        if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
             ctx.fillText(linea, 75, y);
-
-            // Cartel Rojo y Precios sin punto separador ($2700)
-            const posXCartel = 400, anchoCartel = 320; 
-            const centroCartel = posXCartel + (anchoCartel / 2);
-            const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
-            const precioReg = Math.round(pData.precioRegular);
-
-            ctx.fillStyle = "#e11d48";
-            ctx.fillRect(posXCartel, 535, anchoCartel, 140);
-
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 78px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("$" + precioFinal, centroCartel, 635);
-
-            ctx.fillStyle = "#000000";
-            ctx.font = "bold 20px sans-serif";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, centroCartel, 710);
-
-            // Pie de página
-            ctx.font = "bold 22px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("Abonando con QR desde el celular,", canvas.width / 2, 875);
-            ctx.fillText("EXCLUSIVO DINERO EN CUENTA.", canvas.width / 2, 902);
-            ctx.fillText("COMPRA MINIMA DE $15000", canvas.width / 2, 929);
-
-            return canvas.toDataURL('image/png');
+            linea = palabras[n] + " ";
+            y += 30;
+        } else {
+            linea = testLinea;
         }
+    }
+    ctx.fillText(linea, 75, y);
+
+    // Cartel Rojo y Precios
+    const posXCartel = 400, anchoCartel = 320; 
+    const centroCartel = posXCartel + (anchoCartel / 2);
+    const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
+    const precioReg = Math.round(pData.precioRegular);
+
+    ctx.fillStyle = "#e11d48";
+    ctx.fillRect(posXCartel, 535, anchoCartel, 140);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 78px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("$" + precioFinal, centroCartel, 635);
+
+    ctx.fillStyle = "#000000";
+    ctx.font = "bold 20px sans-serif";
+    ctx.fillText("PRECIO REGULAR $" + precioReg, centroCartel, 710);
+
+    // Pie de página
+    ctx.font = "bold 22px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Abonando con QR desde el celular,", canvas.width / 2, 865);
+    ctx.fillText("EXCLUSIVO DINERO EN CUENTA.", canvas.width / 2, 892);
+    ctx.fillText("COMPRA MINIMA DE $15000", canvas.width / 2, 919);
+
+    return canvas.toDataURL('image/png');
+}
+
 
         async function generarTodasLasOfertas() {
             if (productosAEscanear.length === 0) {
