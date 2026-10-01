@@ -6,6 +6,8 @@
     <title>Generador de Ofertas Masivo</title>
     <!-- Librería para escanear código de barras con la cámara -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- Librería para generar y descargar PDF en celulares/PC -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --bg-gray: #f4f4f5;
@@ -169,14 +171,26 @@
         }
 
         @media print {
-            .no-print { display: none !important; }
-            body { padding: 0; background: white; }
-            @page { size: A4 portrait; margin: 0; }
-            .preview-grid { display: block; }
+            .no-print { 
+                display: none !important; 
+            }
+            body { 
+                padding: 0; 
+                background: white; 
+            }
+            @page { 
+                size: A4 portrait; 
+                margin: 0; 
+            }
+            .preview-grid { 
+                display: block !important; 
+            }
             .preview-grid img {
+                display: block;
                 page-break-after: always;
-                width: 100vw;
-                height: 100vh;
+                page-break-inside: avoid;
+                width: 100%;
+                max-height: 100vh;
                 object-fit: contain;
                 border: none;
             }
@@ -227,7 +241,8 @@
 
         <div class="flex-gap" style="margin-top: 20px;">
             <button class="btn-calc" onclick="generarTodasLasOfertas()">⚡ Generar Carteles</button>
-            <button class="btn-print" onclick="window.print()">🖨 Imprimir / PDF</button>
+            <button class="btn-print" onclick="window.print()">🖨 Imprimir (PC)</button>
+            <button class="btn-manual" style="background: #16a34a;" onclick="descargarPDF()">📥 Descargar PDF (Móvil / PC)</button>
         </div>
 
         <div class="preview-grid" id="previewGrid"></div>
@@ -405,49 +420,49 @@
         }
 
         // =========================================================
-        // DIBUJA EL CUADRO DE PRECIO SEGÚN CORRESPONDA
+        // DIBUJA EL CUADRO DE PRECIO
         // =========================================================
-       function dibujarCuadroPrecio(ctx, x, y, ancho, alto, precioFinal, esMiCarrefour, imgMiCarrefour) {
-    if (esMiCarrefour) {
-        // --- DISEÑO MI CARREFOUR (RECUADRO MORADO CON LOGO) ---
-        const colorMorado = "#32164d";
-        const anchoBarraLogo = Math.round(ancho * 0.28);
-        const anchoCajaBlanca = ancho - anchoBarraLogo;
+        function dibujarCuadroPrecio(ctx, x, y, ancho, alto, precioFinal, esMiCarrefour, imgMiCarrefour) {
+            if (esMiCarrefour) {
+                // --- DISEÑO MI CARREFOUR (RECUADRO MORADO CON LOGO) ---
+                const colorMorado = "#32164d";
+                const anchoBarraLogo = Math.round(ancho * 0.28);
+                const anchoCajaBlanca = ancho - anchoBarraLogo;
 
-        ctx.fillStyle = colorMorado;
-        ctx.fillRect(x, y, ancho, alto);
+                ctx.fillStyle = colorMorado;
+                ctx.fillRect(x, y, ancho, alto);
 
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(x + anchoBarraLogo, y + 4, anchoCajaBlanca - 4, alto - 8);
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(x + anchoBarraLogo, y + 4, anchoCajaBlanca - 4, alto - 8);
 
-        if (imgMiCarrefour) {
-            const margin = 8;
-            const maxW = anchoBarraLogo - margin;
-            const maxH = alto - margin;
-            let scale = Math.min(maxW / imgMiCarrefour.width, maxH / imgMiCarrefour.height);
-            let w = imgMiCarrefour.width * scale;
-            let h = imgMiCarrefour.height * scale;
-            ctx.drawImage(imgMiCarrefour, x + (anchoBarraLogo - w) / 2, y + (alto - h) / 2, w, h);
-        } else {
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 16px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("Mi", x + anchoBarraLogo / 2, y + alto / 2);
+                if (imgMiCarrefour) {
+                    const margin = 8;
+                    const maxW = anchoBarraLogo - margin;
+                    const maxH = alto - margin;
+                    let scale = Math.min(maxW / imgMiCarrefour.width, maxH / imgMiCarrefour.height);
+                    let w = imgMiCarrefour.width * scale;
+                    let h = imgMiCarrefour.height * scale;
+                    ctx.drawImage(imgMiCarrefour, x + (anchoBarraLogo - w) / 2, y + (alto - h) / 2, w, h);
+                } else {
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "bold 16px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.fillText("Mi", x + anchoBarraLogo / 2, y + alto / 2);
+                }
+
+                ctx.fillStyle = colorMorado;
+                ctx.font = "bold 58px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("$" + precioFinal, x + anchoBarraLogo + (anchoCajaBlanca / 2), y + (alto / 2) + 20);
+
+            } else {
+                // --- DISEÑO ESTÁNDAR (TEXTO SIMPLE) ---
+                ctx.fillStyle = "#ff0000";
+                ctx.font = "bold 75px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("$" + precioFinal, x + (ancho / 2), y + (alto / 2) + 22);
+            }
         }
-
-        ctx.fillStyle = colorMorado;
-        ctx.font = "bold 58px sans-serif"; // Se redujo el tamaño de la fuente de 70px a 58px
-        ctx.textAlign = "center";
-        ctx.fillText("$" + precioFinal, x + anchoBarraLogo + (anchoCajaBlanca / 2), y + (alto / 2) + 20);
-
-    } else {
-        // --- DISEÑO ESTÁNDAR (TEXTO SIMPLE) ---
-        ctx.fillStyle = "#ff0000";
-        ctx.font = "bold 75px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("$" + precioFinal, x + (ancho / 2), y + (alto / 2) + 22);
-    }
-}
 
         // =========================================================
         // PLANTILLAS DE OFERTAS
@@ -524,11 +539,11 @@
             const precioReg = Math.round(pData.precioRegular);
 
             dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
-            
+
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 560, 710);
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 575, 700);
 
             ctx.font = "bold 22px sans-serif";
             ctx.textAlign = "center";
@@ -610,10 +625,11 @@
             const precioReg = Math.round(pData.precioRegular);
 
             dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
+
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 560, 695);
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 575, 695);
 
             ctx.fillStyle = "#1e1c6b";
             ctx.font = "900 32px sans-serif";
@@ -693,11 +709,12 @@
             const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
             const precioReg = Math.round(pData.precioRegular);
 
-            dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
+            dibujarCuadroPrecio(ctx, 400, 530, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
+
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 525, 690);
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 545, 690);
 
             if (imgViernesInf) {
                 ctx.drawImage(imgViernesInf, 0, 810, canvas.width, 170);
@@ -776,11 +793,12 @@
             const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
             const precioReg = Math.round(pData.precioRegular);
 
-            dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
+            dibujarCuadroPrecio(ctx, 400, 520, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
+
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 525, 680);
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 545, 680);
 
             if (imgSdInf) {
                 ctx.drawImage(imgSdInf, 0, 780, canvas.width, 200);
@@ -834,6 +852,30 @@
 
             previewGrid.innerHTML = '';
             previewGrid.appendChild(fragment);
+        }
+
+        async function descargarPDF() {
+            const imagenes = document.querySelectorAll('#previewGrid img');
+            
+            if (imagenes.length === 0) {
+                alert("Primero debes generar los carteles haciendo clic en '⚡ Generar Carteles'.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+
+            const pdfAncho = doc.internal.pageSize.getWidth();
+            const pdfAlto = doc.internal.pageSize.getHeight();
+
+            for (let i = 0; i < imagenes.length; i++) {
+                if (i > 0) doc.addPage();
+                
+                const imgSrc = imagenes[i].src;
+                doc.addImage(imgSrc, 'PNG', 0, 0, pdfAncho, pdfAlto);
+            }
+
+            doc.save('carteles_ofertas.pdf');
         }
     </script>
 </body>
