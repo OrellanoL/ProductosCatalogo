@@ -764,15 +764,16 @@ async function crearCartelViernes(pData) {
             ctx.fillText("PRECIO REGULAR $" + precioReg, 670, 700);
 
             // 8. Texto Promocional Inferior sobre degradé
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "900 24px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DIGITAL", canvas.width / 2, 850);
+           // ctx.fillStyle = "#ffffff";
+            //ctx.font = "900 24px sans-serif";
+            //ctx.textAlign = "center";
+            //ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DIGITAL", canvas.width / 2, 850);
 
-            // 9. Banner Inferior (Tiendas App Store / Google Play)
+            // 9. Banner Inferior Modificado
             if (imgBannerInf) {
-                ctx.drawImage(imgBannerInf, 0, 875, canvas.width, 105);
-            }
+            const altoBanner = 145; // 👈 1. Aumenta o disminuye la altura (antes era 105)
+            const posicionY = 825;   // 👈 2. Controla qué tan arriba/abajo se dibuja (antes era canvas.height - 105 = 875)
+        
 
             return canvas.toDataURL('image/png');
         }
