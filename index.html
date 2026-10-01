@@ -581,7 +581,7 @@
             const ctx = canvas.getContext('2d');
             const pctDescuento = 15;
 
-            const [imgProducto, imgBannerSup, imgBannerInf, imgCarrefour] = await Promise.all([
+            const [imgProducto, imgViernesSup, imgViernesInf, imgCarrefour] = await Promise.all([
                 cargarImagen(pData.fotoUrl),
                 cargarImagen(URL_BANNER_VIERNES_SUP),
                 cargarImagen(URL_BANNER_VIERNES_INF),
@@ -595,28 +595,28 @@
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            if (imgBannerSup) {
-                ctx.drawImage(imgBannerSup, 0, 0, canvas.width, 230);
+            if (imgViernesSup) {
+                ctx.drawImage(imgViernesSup, 0, 0, canvas.width, 220);
             }
 
             ctx.fillStyle = "#ffffff";
             ctx.lineWidth = 4;
             ctx.strokeStyle = "#00a3e0";
             ctx.beginPath();
-            ctx.roundRect(80, 240, 640, 570, 25);
+            ctx.roundRect(80, 235, 640, 560, 25);
             ctx.fill();
             ctx.stroke();
 
             if (imgCarrefour) {
                 const w = 120, h = (imgCarrefour.height / imgCarrefour.width) * w;
-                ctx.drawImage(imgCarrefour, 580, 260, w, h);
+                ctx.drawImage(imgCarrefour, 580, 255, w, h);
             }
 
             if (imgProducto) {
-                const imgMaxW = 460, imgMaxH = 310;
+                const imgMaxW = 440, imgMaxH = 280;
                 let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
                 let w = imgProducto.width * scale, h = imgProducto.height * scale;
-                ctx.drawImage(imgProducto, (canvas.width - w) / 2, 400 - (h / 2), w, h);
+                ctx.drawImage(imgProducto, (canvas.width - w) / 2, 385 - (h / 2), w, h);
             }
 
             ctx.fillStyle = "#000000";
@@ -624,7 +624,7 @@
             ctx.font = "bold 23px sans-serif";
 
             const palabras = pData.producto.split(" ");
-            let linea = "", y = 570; 
+            let linea = "", y = 560; 
             const maxAncho = 310;
 
             for (let n = 0; n < palabras.length; n++) {
@@ -645,17 +645,15 @@
             ctx.fillStyle = "#6b21a8";
             ctx.font = "bold 84px sans-serif";
             ctx.textAlign = "right";
-            ctx.fillText("$" + precioFinal, 680, 645);
+            ctx.fillText("$" + precioFinal, 680, 635);
 
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "right";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 680, 700);
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 680, 690);
 
-            if (imgBannerInf) {
-                const altoBanner = 145;
-                const posicionY = 825;
-                ctx.drawImage(imgBannerInf, 0, posicionY, canvas.width, altoBanner);
+            if (imgViernesInf) {
+                ctx.drawImage(imgViernesInf, 0, 810, canvas.width, 170);
             }
 
             return canvas.toDataURL('image/png');
@@ -669,7 +667,7 @@
             const ctx = canvas.getContext('2d');
             const pctDescuento = 10;
 
-            const [imgProducto, imgBannerSup, imgBannerInf, imgCarrefour] = await Promise.all([
+            const [imgProducto, imgSdSup, imgSdInf, imgCarrefour] = await Promise.all([
                 cargarImagen(pData.fotoUrl),
                 cargarImagen(URL_BANNER_SD_SUP),
                 cargarImagen(URL_BANNER_SD_INF),
@@ -683,28 +681,28 @@
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            if (imgBannerSup) {
-                ctx.drawImage(imgBannerSup, 0, 0, canvas.width, 230);
+            if (imgSdSup) {
+                ctx.drawImage(imgSdSup, 0, 0, canvas.width, 220);
             }
 
             ctx.fillStyle = "#ffffff";
             ctx.lineWidth = 4;
             ctx.strokeStyle = "#00a3e0";
             ctx.beginPath();
-            ctx.roundRect(90, 240, 620, 580, 25);
+            ctx.roundRect(80, 235, 640, 560, 25);
             ctx.fill();
             ctx.stroke();
 
             if (imgCarrefour) {
                 const w = 120, h = (imgCarrefour.height / imgCarrefour.width) * w;
-                ctx.drawImage(imgCarrefour, 560, 260, w, h);
+                ctx.drawImage(imgCarrefour, 580, 255, w, h);
             }
 
             if (imgProducto) {
-                const imgMaxW = 400, imgMaxH = 260;
+                const imgMaxW = 440, imgMaxH = 280;
                 let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
                 let w = imgProducto.width * scale, h = imgProducto.height * scale;
-                ctx.drawImage(imgProducto, (canvas.width - w) / 2, 380 - (h / 2), w, h);
+                ctx.drawImage(imgProducto, (canvas.width - w) / 2, 385 - (h / 2), w, h);
             }
 
             ctx.fillStyle = "#000000";
@@ -712,8 +710,8 @@
             ctx.font = "bold 24px sans-serif";
 
             const palabras = pData.producto.split(" ");
-            let linea = "", y = 570; 
-            const maxAncho = 300;
+            let linea = "", y = 560; 
+            const maxAncho = 310;
 
             for (let n = 0; n < palabras.length; n++) {
                 let testLinea = linea + palabras[n] + " ";
@@ -733,18 +731,16 @@
             ctx.fillStyle = "#6b21a8";
             ctx.font = "bold 82px sans-serif";
             ctx.textAlign = "right";
-            ctx.fillText("$" + precioFinal, 670, 640);
+            ctx.fillText("$" + precioFinal, 680, 635);
 
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "right";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 670, 700);
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 680, 690);
 
-            // DIBUJO DEL BANNER INFERIOR
-            if (imgBannerInf) {
-                const altoBanner = 145;
-                const posicionY = 825;
-                ctx.drawImage(imgBannerInf, 0, posicionY, canvas.width, altoBanner);
+            // RENDER BANNER INFERIOR SÁBADO/DOMINGO
+            if (imgSdInf) {
+                ctx.drawImage(imgSdInf, 0, 810, canvas.width, 170);
             }
 
             return canvas.toDataURL('image/png');
