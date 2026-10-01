@@ -407,47 +407,47 @@
         // =========================================================
         // DIBUJA EL CUADRO DE PRECIO SEGÚN CORRESPONDA
         // =========================================================
-        function dibujarCuadroPrecio(ctx, x, y, ancho, alto, precioFinal, esMiCarrefour, imgMiCarrefour) {
-            if (esMiCarrefour) {
-                // --- DISEÑO MI CARREFOUR (RECUADRO MORADO CON LOGO) ---
-                const colorMorado = "#32164d";
-                const anchoBarraLogo = Math.round(ancho * 0.28);
-                const anchoCajaBlanca = ancho - anchoBarraLogo;
+       function dibujarCuadroPrecio(ctx, x, y, ancho, alto, precioFinal, esMiCarrefour, imgMiCarrefour) {
+    if (esMiCarrefour) {
+        // --- DISEÑO MI CARREFOUR (RECUADRO MORADO CON LOGO) ---
+        const colorMorado = "#32164d";
+        const anchoBarraLogo = Math.round(ancho * 0.28);
+        const anchoCajaBlanca = ancho - anchoBarraLogo;
 
-                ctx.fillStyle = colorMorado;
-                ctx.fillRect(x, y, ancho, alto);
+        ctx.fillStyle = colorMorado;
+        ctx.fillRect(x, y, ancho, alto);
 
-                ctx.fillStyle = "#ffffff";
-                ctx.fillRect(x + anchoBarraLogo, y + 6, anchoCajaBlanca - 6, alto - 12);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(x + anchoBarraLogo, y + 4, anchoCajaBlanca - 4, alto - 8);
 
-                if (imgMiCarrefour) {
-                    const margin = 10;
-                    const maxW = anchoBarraLogo - margin;
-                    const maxH = alto - margin;
-                    let scale = Math.min(maxW / imgMiCarrefour.width, maxH / imgMiCarrefour.height);
-                    let w = imgMiCarrefour.width * scale;
-                    let h = imgMiCarrefour.height * scale;
-                    ctx.drawImage(imgMiCarrefour, x + (anchoBarraLogo - w) / 2, y + (alto - h) / 2, w, h);
-                } else {
-                    ctx.fillStyle = "#ffffff";
-                    ctx.font = "bold 18px sans-serif";
-                    ctx.textAlign = "center";
-                    ctx.fillText("Mi", x + anchoBarraLogo / 2, y + alto / 2);
-                }
-
-                ctx.fillStyle = colorMorado;
-                ctx.font = "bold 70px sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText("$" + precioFinal, x + anchoBarraLogo + (anchoCajaBlanca / 2), y + (alto / 2) + 24);
-
-            } else {
-                // --- DISEÑO ESTÁNDAR (TEXTO SIMPLE) ---
-                ctx.fillStyle = "#ff0000";
-                ctx.font = "bold 82px sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText("$" + precioFinal, x + (ancho / 2), y + (alto / 2) + 25);
-            }
+        if (imgMiCarrefour) {
+            const margin = 8;
+            const maxW = anchoBarraLogo - margin;
+            const maxH = alto - margin;
+            let scale = Math.min(maxW / imgMiCarrefour.width, maxH / imgMiCarrefour.height);
+            let w = imgMiCarrefour.width * scale;
+            let h = imgMiCarrefour.height * scale;
+            ctx.drawImage(imgMiCarrefour, x + (anchoBarraLogo - w) / 2, y + (alto - h) / 2, w, h);
+        } else {
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 16px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Mi", x + anchoBarraLogo / 2, y + alto / 2);
         }
+
+        ctx.fillStyle = colorMorado;
+        ctx.font = "bold 58px sans-serif"; // Se redujo el tamaño de la fuente de 70px a 58px
+        ctx.textAlign = "center";
+        ctx.fillText("$" + precioFinal, x + anchoBarraLogo + (anchoCajaBlanca / 2), y + (alto / 2) + 20);
+
+    } else {
+        // --- DISEÑO ESTÁNDAR (TEXTO SIMPLE) ---
+        ctx.fillStyle = "#ff0000";
+        ctx.font = "bold 75px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("$" + precioFinal, x + (ancho / 2), y + (alto / 2) + 22);
+    }
+}
 
         // =========================================================
         // PLANTILLAS DE OFERTAS
@@ -523,8 +523,8 @@
             const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
             const precioReg = Math.round(pData.precioRegular);
 
-            dibujarCuadroPrecio(ctx, 400, 535, 320, 140, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
-
+            dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
+            
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
@@ -609,8 +609,7 @@
             const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
             const precioReg = Math.round(pData.precioRegular);
 
-            dibujarCuadroPrecio(ctx, 400, 535, 320, 140, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
-
+            dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
@@ -694,8 +693,7 @@
             const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
             const precioReg = Math.round(pData.precioRegular);
 
-            dibujarCuadroPrecio(ctx, 360, 530, 330, 130, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
-
+            dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
@@ -778,8 +776,7 @@
             const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
             const precioReg = Math.round(pData.precioRegular);
 
-            dibujarCuadroPrecio(ctx, 360, 520, 330, 130, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
-
+            dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData.esMiCarrefour, imgMiCarrefour);
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
