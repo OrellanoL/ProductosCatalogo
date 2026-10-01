@@ -1,227 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Ofertas Masivo</title>
-    <!-- Librería para escanear código de barras con la cámara -->
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <style>
-        :root {
-            --bg-gray: #f4f4f5;
-            --border-color: #e4e4e7;
-            --primary: #001a72;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-gray);
-            padding: 15px;
-            color: #18181b;
-        }
-
-        .card {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            font-size: 1.4rem;
-            margin-bottom: 6px;
-            color: var(--primary);
-        }
-
-        .subtitle {
-            color: #71717a;
-            font-size: 0.85rem;
-            margin-bottom: 16px;
-        }
-
-        .section-box {
-            background: #f8fafc;
-            padding: 14px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 16px;
-        }
-
-        label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 6px;
-        }
-
-        input[type="text"], input[type="number"], select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 0.95rem;
-            background: white;
-        }
-
-        .flex-gap {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        button {
-            padding: 12px 18px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            font-size: 0.95rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-camera { background: #0284c7; color: white; width: 100%; }
-        .btn-manual { background: #3b82f6; color: white; }
-        .btn-calc { background: #000; color: white; flex: 1; }
-        .btn-print { background: #e4e4e7; color: #18181b; flex: 1; }
-        .btn-danger { background: #ef4444; color: white; padding: 6px 10px; font-size: 0.8rem; }
-
-        #reader {
-            width: 100%;
-            max-width: 450px;
-            margin: 10px auto;
-            border-radius: 8px;
-            overflow: hidden;
-            display: none;
-        }
-
-        .scanned-list {
-            margin-top: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .item-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: white;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            gap: 10px;
-        }
-
-        .item-info { flex: 1; }
-        .item-info strong { display: block; font-size: 0.9rem; }
-        .item-info span { font-size: 0.8rem; color: #666; }
-
-        .item-price-input {
-            width: 110px !important;
-            text-align: right;
-        }
-
-        .preview-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
-            margin-top: 20px;
-        }
-
-        .preview-grid img {
-            width: 100%;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-        }
-
-        .status-badge {
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: #15803d;
-            background: #dcfce7;
-            padding: 6px 10px;
-            border-radius: 6px;
-            display: inline-block;
-        }
-
-        @media print {
-            .no-print { display: none !important; }
-            body { padding: 0; background: white; }
-            @page { size: A4 portrait; margin: 0; }
-            .preview-grid { display: block; }
-            .preview-grid img {
-                page-break-after: always;
-                width: 100vw;
-                height: 100vh;
-                object-fit: contain;
-                border: none;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="card no-print">
-        <h1>📱 Generador de Ofertas Online</h1>
-        <p class="subtitle">Catálogo sincronizado desde GitHub en tiempo real.</p>
-
-        <!-- ESTADO DEL CATÁLOGO ONLINE -->
-        <div class="section-box">
-            <label>Estado del Catálogo:</label>
-            <div id="statusCatalogo">⏳ Cargando catálogo online...</div>
-        </div>
-
-        <!-- SELECCIÓN DE DÍA Y PLANTILLA -->
-        <div class="section-box">
-            <div class="flex-gap" style="margin-bottom: 12px;">
-                <div style="flex: 1;">
-                    <label>Seleccionar Promoción:</label>
-                    <select id="tipoPromocionSelect">
-                        <option value="miercoles">Miércoles - Cuenta DNI (10%)</option>
-                        <option value="jueves">Jueves - Mercado Pago (15%)</option>
-                        <option value="viernes">Viernes - Cuenta Digital (15%)</option>
-                        <option value="sabadoDomingo" selected>Sábado y Domingo - Cuenta Digital (10%)</option>
-                    </select>
-                </div>
-            </div>
-
-            <button class="btn-camera" onclick="alternarCamara()">📷 Escanear Producto con Cámara</button>
-            <div id="reader"></div>
-
-            <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
-                <label>O ingresar EAN manualmente:</label>
-                <div class="flex-gap">
-                    <input type="text" id="manualEanInput" placeholder="Ej: 7792180144829" style="flex: 1;">
-                    <button class="btn-manual" onclick="buscarEanManual()">Buscar</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- LISTA DE PRODUCTOS SELECCIONADOS -->
-        <label>Productos seleccionados hoy (<span id="cantProductos">0</span>):</label>
-        <div class="scanned-list" id="listaEscaneados"></div>
-
-        <div class="flex-gap" style="margin-top: 20px;">
-            <button class="btn-calc" onclick="generarTodasLasOfertas()">⚡ Generar Carteles</button>
-            <button class="btn-print" onclick="window.print()">🖨 Imprimir / PDF</button>
-        </div>
-
-        <div class="preview-grid" id="previewGrid"></div>
-    </div>
-
-    <script>
+<script>
         // URLs Base de Recursos en GitHub
         const URL_CSV_CATALOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/catalogo.csv';
         const URL_MP_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/mplogo.png';
@@ -285,11 +62,6 @@
             const readerDiv = document.getElementById("reader");
             if (escanerActivo) { detenerCamara(); return; }
 
-            if (Object.keys(catalogoProductos).length === 0) {
-                alert("Aún no se ha cargado el catálogo online o falló la conexión.");
-                return;
-            }
-
             readerDiv.style.display = "block";
             html5QrcodeScanner = new Html5Qrcode("reader");
 
@@ -321,10 +93,6 @@
         }
 
         function buscarEanManual() {
-            if (Object.keys(catalogoProductos).length === 0) {
-                alert("El catálogo online no está listo.");
-                return;
-            }
             const ean = document.getElementById('manualEanInput').value.trim();
             if (ean) {
                 procesarEAN(ean);
@@ -335,9 +103,18 @@
         function procesarEAN(ean) {
             let productoBase = catalogoProductos[ean];
 
+            // Si el EAN no existe o no cargó el catálogo, permite ingreso de nombre manual
             if (!productoBase) {
-                alert(`⚠️ El código EAN ${ean} no existe en tu catálogo online.`);
-                return;
+                const nombreManual = prompt(`El EAN ${ean} no existe en el catálogo online.\n\nIngresá el nombre del producto:`);
+                if (!nombreManual) return;
+
+                productoBase = {
+                    ean: ean,
+                    producto: nombreManual.toUpperCase(),
+                    descripcion: "",
+                    aclaracion: "",
+                    fotoUrl: `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/${ean}.webp`
+                };
             }
 
             const precio = prompt(`Producto: ${productoBase.producto}\n\nIngresá el Precio Regular actual ($):`, "1000");
@@ -575,108 +352,93 @@
         }
 
         // --- PLANTILLA 3: VIERNES (Cuenta Digital - 15%) ---
-async function crearCartelViernes(pData) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 980;
-    const ctx = canvas.getContext('2d');
-    const pctDescuento = 15;
+        async function crearCartelViernes(pData) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 980;
+            const ctx = canvas.getContext('2d');
+            const pctDescuento = 15;
 
-    const [imgProducto, imgBannerSup, imgBannerInf, imgCarrefour] = await Promise.all([
-        cargarImagen(pData.fotoUrl),
-        cargarImagen(URL_BANNER_VIERNES_SUP),
-        cargarImagen(URL_BANNER_VIERNES_INF),
-        cargarImagen(URL_CARREFOUR_LOGO)
-    ]);
+            const [imgProducto, imgBannerSup, imgBannerInf, imgCarrefour] = await Promise.all([
+                cargarImagen(pData.fotoUrl),
+                cargarImagen(URL_BANNER_VIERNES_SUP),
+                cargarImagen(URL_BANNER_VIERNES_INF),
+                cargarImagen(URL_CARREFOUR_LOGO)
+            ]);
 
-    // 1. Fondo en Degradé ajustado (Transición azul/púrpura idéntica al modelo)
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, '#2e3d92');
-    gradient.addColorStop(0.4, '#4d2371');
-    gradient.addColorStop(1, '#621a68');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#2e3d92');
+            gradient.addColorStop(0.4, '#4d2371');
+            gradient.addColorStop(1, '#621a68');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 2. Banner Superior
-    if (imgBannerSup) {
-        ctx.drawImage(imgBannerSup, 0, 0, canvas.width, 230);
-    }
+            if (imgBannerSup) {
+                ctx.drawImage(imgBannerSup, 0, 0, canvas.width, 230);
+            }
 
-    // 3. Recuadro Blanco Central
-    ctx.fillStyle = "#ffffff";
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = "#00a3e0";
-    ctx.beginPath();
-    ctx.roundRect(80, 240, 640, 570, 25);
-    ctx.fill();
-    ctx.stroke();
+            ctx.fillStyle = "#ffffff";
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "#00a3e0";
+            ctx.beginPath();
+            ctx.roundRect(80, 240, 640, 570, 25);
+            ctx.fill();
+            ctx.stroke();
 
-    // 4. Logo Carrefour Express
-    if (imgCarrefour) {
-        const w = 120, h = (imgCarrefour.height / imgCarrefour.width) * w;
-        ctx.drawImage(imgCarrefour, 580, 260, w, h);
-    }
+            if (imgCarrefour) {
+                const w = 120, h = (imgCarrefour.height / imgCarrefour.width) * w;
+                ctx.drawImage(imgCarrefour, 580, 260, w, h);
+            }
 
-    // 5. Imagen del Producto (Más grande para destacar mejor)
-    if (imgProducto) {
-        const imgMaxW = 460, imgMaxH = 310;
-        let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
-        let w = imgProducto.width * scale, h = imgProducto.height * scale;
-        ctx.drawImage(imgProducto, (canvas.width - w) / 2, 400 - (h / 2), w, h);
-    }
+            if (imgProducto) {
+                const imgMaxW = 460, imgMaxH = 310;
+                let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
+                let w = imgProducto.width * scale, h = imgProducto.height * scale;
+                ctx.drawImage(imgProducto, (canvas.width - w) / 2, 400 - (h / 2), w, h);
+            }
 
-    // 6. Nombre / Descripción del producto
-    ctx.fillStyle = "#000000";
-    ctx.textAlign = "left";
-    ctx.font = "bold 23px sans-serif";
+            ctx.fillStyle = "#000000";
+            ctx.textAlign = "left";
+            ctx.font = "bold 23px sans-serif";
 
-    const palabras = pData.producto.split(" ");
-    let linea = "", y = 570; 
-    const maxAncho = 310;
+            const palabras = pData.producto.split(" ");
+            let linea = "", y = 570; 
+            const maxAncho = 310;
 
-    for (let n = 0; n < palabras.length; n++) {
-        let testLinea = linea + palabras[n] + " ";
-        if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
+            for (let n = 0; n < palabras.length; n++) {
+                let testLinea = linea + palabras[n] + " ";
+                if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
+                    ctx.fillText(linea, 110, y);
+                    linea = palabras[n] + " ";
+                    y += 28;
+                } else {
+                    linea = testLinea;
+                }
+            }
             ctx.fillText(linea, 110, y);
-            linea = palabras[n] + " ";
-            y += 28;
-        } else {
-            linea = testLinea;
+
+            const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
+            const precioReg = Math.round(pData.precioRegular);
+
+            ctx.fillStyle = "#6b21a8";
+            ctx.font = "bold 84px sans-serif";
+            ctx.textAlign = "right";
+            ctx.fillText("$" + precioFinal, 680, 645);
+
+            ctx.fillStyle = "#000000";
+            ctx.font = "bold 20px sans-serif";
+            ctx.textAlign = "right";
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 680, 700);
+
+            if (imgBannerInf) {
+                const altoBanner = 145;
+                const posicionY = 825;
+                ctx.drawImage(imgBannerInf, 0, posicionY, canvas.width, altoBanner);
+            }
+
+            return canvas.toDataURL('image/png');
         }
-    }
-    ctx.fillText(linea, 110, y);
 
-    // 7. Precio Oferta (Violeta sobre Fondo Blanco)
-    const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
-    const precioReg = Math.round(pData.precioRegular);
-
-    ctx.fillStyle = "#6b21a8";
-    ctx.font = "bold 84px sans-serif";
-    ctx.textAlign = "right";
-    ctx.fillText("$" + precioFinal, 680, 645);
-
-    ctx.fillStyle = "#000000";
-    ctx.font = "bold 20px sans-serif";
-    ctx.textAlign = "right";
-    ctx.fillText("PRECIO REGULAR $" + precioReg, 680, 700);
-// 8. Texto Promocional Inferior (Subido unos píxeles para dejar lugar al banner)
-  //  ctx.fillStyle = "#ffffff";
-    //ctx.font = "900 22px sans-serif";
-    //ctx.textAlign = "center";
-    //ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DIGITAL", canvas.width / 2, 835);
-
-    // 9. Banner Inferior Modificado
-    if (imgBannerInf) {
-        const altoBanner = 145; // 👈 1. Aumenta o disminuye la altura (antes era 105)
-        const posicionY = 825;   // 👈 2. Controla qué tan arriba/abajo se dibuja (antes era canvas.height - 105 = 875)
-        
-        ctx.drawImage(imgBannerInf, 0, posicionY, canvas.width, altoBanner);
-    }
-
-    return canvas.toDataURL('image/png');
-    
-    
-}
         // --- PLANTILLA 4: SÁBADO Y DOMINGO (Cuenta Digital - 10%) ---
         async function crearCartelSabadoDomingo(pData) {
             const canvas = document.createElement('canvas');
@@ -692,7 +454,6 @@ async function crearCartelViernes(pData) {
                 cargarImagen(URL_CARREFOUR_LOGO)
             ]);
 
-            // 1. Fondo en Degradé (Azul a Violeta)
             const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
             gradient.addColorStop(0, '#1c2d82');
             gradient.addColorStop(0.5, '#432371');
@@ -700,12 +461,10 @@ async function crearCartelViernes(pData) {
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // 2. Banner Superior
             if (imgBannerSup) {
                 ctx.drawImage(imgBannerSup, 0, 0, canvas.width, 230);
             }
 
-            // 3. Recuadro Blanco Central
             ctx.fillStyle = "#ffffff";
             ctx.lineWidth = 4;
             ctx.strokeStyle = "#00a3e0";
@@ -714,13 +473,11 @@ async function crearCartelViernes(pData) {
             ctx.fill();
             ctx.stroke();
 
-            // 4. Logo Carrefour Express
             if (imgCarrefour) {
                 const w = 120, h = (imgCarrefour.height / imgCarrefour.width) * w;
                 ctx.drawImage(imgCarrefour, 560, 260, w, h);
             }
 
-            // 5. Imagen del producto
             if (imgProducto) {
                 const imgMaxW = 400, imgMaxH = 260;
                 let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
@@ -728,7 +485,6 @@ async function crearCartelViernes(pData) {
                 ctx.drawImage(imgProducto, (canvas.width - w) / 2, 380 - (h / 2), w, h);
             }
 
-            // 6. Nombre / Descripción del producto
             ctx.fillStyle = "#000000";
             ctx.textAlign = "left";
             ctx.font = "bold 24px sans-serif";
@@ -749,7 +505,6 @@ async function crearCartelViernes(pData) {
             }
             ctx.fillText(linea, 110, y);
 
-            // 7. Precio Oferta (Violeta sobre Fondo Blanco)
             const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
             const precioReg = Math.round(pData.precioRegular);
 
@@ -763,17 +518,11 @@ async function crearCartelViernes(pData) {
             ctx.textAlign = "right";
             ctx.fillText("PRECIO REGULAR $" + precioReg, 670, 700);
 
-            // 8. Texto Promocional Inferior sobre degradé
-           // ctx.fillStyle = "#ffffff";
-            //ctx.font = "900 24px sans-serif";
-            //ctx.textAlign = "center";
-            //ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DIGITAL", canvas.width / 2, 850);
-
-            // 9. Banner Inferior Modificado
             if (imgBannerInf) {
-            const altoBanner = 145; // 👈 1. Aumenta o disminuye la altura (antes era 105)
-            const posicionY = 825;   // 👈 2. Controla qué tan arriba/abajo se dibuja (antes era canvas.height - 105 = 875)
-        
+                const altoBanner = 145;
+                const posicionY = 825;
+                ctx.drawImage(imgBannerInf, 0, posicionY, canvas.width, altoBanner);
+            }
 
             return canvas.toDataURL('image/png');
         }
@@ -813,5 +562,3 @@ async function crearCartelViernes(pData) {
             previewGrid.appendChild(fragment);
         }
     </script>
-</body>
-</html>
