@@ -660,14 +660,14 @@ async function crearCartelViernes(pData) {
     ctx.textAlign = "right";
     ctx.fillText("PRECIO REGULAR $" + precioReg, 680, 700);
 // 8. Texto Promocional Inferior (Subido unos píxeles para dejar lugar al banner)
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "900 22px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DIGITAL", canvas.width / 2, 835);
+  //  ctx.fillStyle = "#ffffff";
+    //ctx.font = "900 22px sans-serif";
+    //ctx.textAlign = "center";
+    //ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DIGITAL", canvas.width / 2, 835);
 
     // 9. Banner Inferior Modificado
     if (imgBannerInf) {
-        const altoBanner = 125; // 👈 1. Aumenta o disminuye la altura (antes era 105)
+        const altoBanner = 145; // 👈 1. Aumenta o disminuye la altura (antes era 105)
         const posicionY = 850;   // 👈 2. Controla qué tan arriba/abajo se dibuja (antes era canvas.height - 105 = 875)
         
         ctx.drawImage(imgBannerInf, 0, posicionY, canvas.width, altoBanner);
