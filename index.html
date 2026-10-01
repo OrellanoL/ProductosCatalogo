@@ -574,7 +574,7 @@
             return canvas.toDataURL('image/png');
         }
 
-        // --- PLANTILLA 3: VIERNES (Cuenta Digital - 15% - Banner Sup/Inf + Degradé) ---
+        // --- PLANTILLA 3: VIERNES (Cuenta Digital - 15%) ---
         async function crearCartelViernes(pData) {
             const canvas = document.createElement('canvas');
             canvas.width = 800;
@@ -599,7 +599,7 @@
 
             // 2. Banner Superior
             if (imgBannerSup) {
-                ctx.drawImage(imgBannerSup, 0, 0, canvas.width, 220);
+                ctx.drawImage(imgBannerSup, 0, 0, canvas.width, 230);
             }
 
             // 3. Recuadro Blanco Central
@@ -607,19 +607,19 @@
             ctx.lineWidth = 4;
             ctx.strokeStyle = "#00a3e0";
             ctx.beginPath();
-            ctx.roundRect(50, 240, 700, 580, 25);
+            ctx.roundRect(90, 240, 620, 580, 25);
             ctx.fill();
             ctx.stroke();
 
             // 4. Logo Carrefour Express
             if (imgCarrefour) {
                 const w = 120, h = (imgCarrefour.height / imgCarrefour.width) * w;
-                ctx.drawImage(imgCarrefour, 600, 260, w, h);
+                ctx.drawImage(imgCarrefour, 560, 260, w, h);
             }
 
             // 5. Imagen del producto
             if (imgProducto) {
-                const imgMaxW = 440, imgMaxH = 280;
+                const imgMaxW = 400, imgMaxH = 260;
                 let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
                 let w = imgProducto.width * scale, h = imgProducto.height * scale;
                 ctx.drawImage(imgProducto, (canvas.width - w) / 2, 380 - (h / 2), w, h);
@@ -632,56 +632,49 @@
 
             const palabras = pData.producto.split(" ");
             let linea = "", y = 570; 
-            const maxAncho = 320;
+            const maxAncho = 300;
 
             for (let n = 0; n < palabras.length; n++) {
                 let testLinea = linea + palabras[n] + " ";
                 if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
-                    ctx.fillText(linea, 75, y);
+                    ctx.fillText(linea, 110, y);
                     linea = palabras[n] + " ";
                     y += 30;
                 } else {
                     linea = testLinea;
                 }
             }
-            ctx.fillText(linea, 75, y);
+            ctx.fillText(linea, 110, y);
 
-            // 7. Recuadro Mi Carrefour + Precio Oferta
+            // 7. Precio Oferta (Violeta sobre Fondo Blanco)
             const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
             const precioReg = Math.round(pData.precioRegular);
 
-            // Caja oscura
-            ctx.fillStyle = "#1e1432";
-            ctx.fillRect(420, 540, 300, 130);
+            ctx.fillStyle = "#6b21a8";
+            ctx.font = "bold 82px sans-serif";
+            ctx.textAlign = "right";
+            ctx.fillText("$" + precioFinal, 670, 640);
 
-            // Logo Mi Carrefour
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 32px sans-serif";
-            ctx.textAlign = "left";
-            ctx.fillText("Mi", 430, 585);
-            
-            ctx.font = "bold 26px sans-serif";
-            ctx.fillText("⬡", 435, 625);
-
-            // Precio Oferta
-            ctx.font = "bold 64px sans-serif";
-            ctx.fillText("$" + precioFinal, 480, 625);
-
-            // Precio Regular abajo
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 570, 710);
+            ctx.textAlign = "right";
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 670, 700);
 
-            // 8. Banner Inferior
+            // 8. Texto Promocional Inferior sobre degradé
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "900 24px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DIGITAL", canvas.width / 2, 850);
+
+            // 9. Banner Inferior
             if (imgBannerInf) {
-                ctx.drawImage(imgBannerInf, 0, 830, canvas.width, 150);
+                ctx.drawImage(imgBannerInf, 0, 875, canvas.width, 105);
             }
 
             return canvas.toDataURL('image/png');
         }
 
-        // --- PLANTILLA 4: SÁBADO Y DOMINGO (Cuenta Digital - 10% - Banner Sup/Inf + Degradé) ---
+        // --- PLANTILLA 4: SÁBADO Y DOMINGO (Cuenta Digital - 10%) ---
         async function crearCartelSabadoDomingo(pData) {
             const canvas = document.createElement('canvas');
             canvas.width = 800;
@@ -706,7 +699,7 @@
 
             // 2. Banner Superior
             if (imgBannerSup) {
-                ctx.drawImage(imgBannerSup, 0, 0, canvas.width, 220);
+                ctx.drawImage(imgBannerSup, 0, 0, canvas.width, 230);
             }
 
             // 3. Recuadro Blanco Central
@@ -714,19 +707,19 @@
             ctx.lineWidth = 4;
             ctx.strokeStyle = "#00a3e0";
             ctx.beginPath();
-            ctx.roundRect(50, 240, 700, 580, 25);
+            ctx.roundRect(90, 240, 620, 580, 25);
             ctx.fill();
             ctx.stroke();
 
             // 4. Logo Carrefour Express
             if (imgCarrefour) {
                 const w = 120, h = (imgCarrefour.height / imgCarrefour.width) * w;
-                ctx.drawImage(imgCarrefour, 600, 260, w, h);
+                ctx.drawImage(imgCarrefour, 560, 260, w, h);
             }
 
             // 5. Imagen del producto
             if (imgProducto) {
-                const imgMaxW = 440, imgMaxH = 280;
+                const imgMaxW = 400, imgMaxH = 260;
                 let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
                 let w = imgProducto.width * scale, h = imgProducto.height * scale;
                 ctx.drawImage(imgProducto, (canvas.width - w) / 2, 380 - (h / 2), w, h);
@@ -739,50 +732,43 @@
 
             const palabras = pData.producto.split(" ");
             let linea = "", y = 570; 
-            const maxAncho = 320;
+            const maxAncho = 300;
 
             for (let n = 0; n < palabras.length; n++) {
                 let testLinea = linea + palabras[n] + " ";
                 if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
-                    ctx.fillText(linea, 75, y);
+                    ctx.fillText(linea, 110, y);
                     linea = palabras[n] + " ";
                     y += 30;
                 } else {
                     linea = testLinea;
                 }
             }
-            ctx.fillText(linea, 75, y);
+            ctx.fillText(linea, 110, y);
 
-            // 7. Recuadro Mi Carrefour + Precio Oferta (10%)
+            // 7. Precio Oferta (Violeta sobre Fondo Blanco)
             const precioFinal = Math.round(pData.precioRegular * (1 - pctDescuento / 100));
             const precioReg = Math.round(pData.precioRegular);
 
-            // Caja oscura
-            ctx.fillStyle = "#1e1432";
-            ctx.fillRect(420, 540, 300, 130);
+            ctx.fillStyle = "#6b21a8";
+            ctx.font = "bold 82px sans-serif";
+            ctx.textAlign = "right";
+            ctx.fillText("$" + precioFinal, 670, 640);
 
-            // Logo Mi Carrefour
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 32px sans-serif";
-            ctx.textAlign = "left";
-            ctx.fillText("Mi", 430, 585);
-            
-            ctx.font = "bold 26px sans-serif";
-            ctx.fillText("⬡", 435, 625);
-
-            // Precio Oferta
-            ctx.font = "bold 64px sans-serif";
-            ctx.fillText("$" + precioFinal, 480, 625);
-
-            // Precio Regular abajo
             ctx.fillStyle = "#000000";
             ctx.font = "bold 20px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + precioReg, 570, 710);
+            ctx.textAlign = "right";
+            ctx.fillText("PRECIO REGULAR $" + precioReg, 670, 700);
 
-            // 8. Banner Inferior
+            // 8. Texto Promocional Inferior sobre degradé
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "900 24px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("EXCLUSIVO ABONANDO CON CUENTA DIGITAL", canvas.width / 2, 850);
+
+            // 9. Banner Inferior (Tiendas App Store / Google Play)
             if (imgBannerInf) {
-                ctx.drawImage(imgBannerInf, 0, 830, canvas.width, 150);
+                ctx.drawImage(imgBannerInf, 0, 875, canvas.width, 105);
             }
 
             return canvas.toDataURL('image/png');
