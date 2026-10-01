@@ -227,6 +227,7 @@
         const URL_MP_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/mplogo.png';
         const URL_CARREFOUR_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/carrefourexpresslogo.webp';
         const URL_CUENTA_DNI_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/cuentadnilogo.jpg';
+        const URL_MI_CARREFOUR_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/micarrefour.jpg';
         
         // Banners de Viernes
         const URL_BANNER_VIERNES_SUP = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerviernes_2.jpg';
@@ -325,31 +326,34 @@
         }
 
         function procesarEAN(ean) {
-            let productoBase = catalogoProductos[ean];
+    let productoBase = catalogoProductos[ean];
 
-            if (!productoBase) {
-                const nombreManual = prompt(`El EAN ${ean} no existe en el catálogo online.\n\nIngresá el nombre del producto:`);
-                if (!nombreManual) return;
+    if (!productoBase) {
+        const nombreManual = prompt(`El EAN ${ean} no existe en el catálogo online.\n\nIngresá el nombre del producto:`);
+        if (!nombreManual) return;
 
-                productoBase = {
-                    ean: ean,
-                    producto: nombreManual.toUpperCase(),
-                    descripcion: "",
-                    aclaracion: "",
-                    fotoUrl: `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/${ean}.webp`
-                };
-            }
+        productoBase = {
+            ean: ean,
+            producto: nombreManual.toUpperCase(),
+            descripcion: "",
+            aclaracion: "",
+            fotoUrl: `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/${ean}.webp`
+        };
+    }
 
-            const precio = prompt(`Producto: ${productoBase.producto}\n\nIngresá el Precio Regular actual ($):`, "1000");
-            
-            if (precio !== null) {
-                productosAEscanear.push({
-                    ...productoBase,
-                    precioRegular: parseFloat(precio) || 0
-                });
-                actualizarListaUI();
-            }
-        }
+    const precio = prompt(`Producto: ${productoBase.producto}\n\nIngresá el Precio Regular actual ($):`, "1000");
+    if (precio === null) return;
+
+    // Preguntar si aplica la promoción "Mi Carrefour"
+    const esMiCarrefour = confirm("¿Este producto tiene precio exclusivo 'Mi Carrefour'?");
+
+    productosAEscanear.push({
+        ...productoBase,
+        precioRegular: parseFloat(precio) || 0,
+        esMiCarrefour: esMiCarrefour
+    });
+    actualizarListaUI();
+}
 
         function actualizarListaUI() {
             const contenedor = document.getElementById('listaEscaneados');
@@ -385,6 +389,62 @@
                 img.src = src;
             });
         }
+
+        // ... (código anterior: eliminarProducto, cargarImagen, etc.) ...
+
+        // =========================================================
+        // 3. FUNCIÓN AUXILIAR PARA DIBUJAR PRECIO (Pegar aquí)
+        // =========================================================
+        function dibujarCuadroPrecio(ctx, x, y, ancho, alto, precioFinal, esMiCarrefour, imgMiCarrefour) {
+            if (esMiCarrefour) {
+                // --- DISEÑO MI CARREFOUR ---
+                const colorMorado = "#32164d";
+                const anchoBarraLogo = Math.round(ancho * 0.28); // 28% para la barra lateral
+                const anchoCajaBlanca = ancho - anchoBarraLogo;
+
+                // 1. Fondo completo morado
+                ctx.fillStyle = colorMorado;
+                ctx.fillRect(x, y, ancho, alto);
+
+                // 2. Fondo blanco para el precio
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(x + anchoBarraLogo, y + 6, anchoCajaBlanca - 6, alto - 12);
+
+                // 3. Logo Mi Carrefour
+                if (imgMiCarrefour) {
+                    const margin = 10;
+                    const maxW = anchoBarraLogo - margin;
+                    const maxH = alto - margin;
+                    let scale = Math.min(maxW / imgMiCarrefour.width, maxH / imgMiCarrefour.height);
+                    let w = imgMiCarrefour.width * scale;
+                    let h = imgMiCarrefour.height * scale;
+                    ctx.drawImage(imgMiCarrefour, x + (anchoBarraLogo - w) / 2, y + (alto - h) / 2, w, h);
+                } else {
+                    // Texto de respaldo si la imagen falla
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "bold 18px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.fillText("Mi", x + anchoBarraLogo / 2, y + alto / 2);
+                }
+
+                // 4. Texto del precio
+                ctx.fillStyle = colorMorado;
+                ctx.font = "bold 70px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("$" + precioFinal, x + anchoBarraLogo + (anchoCajaBlanca / 2), y + (alto / 2) + 24);
+
+            } else {
+                // --- DISEÑO ESTÁNDAR ---
+                ctx.fillStyle = "#6b21a8";
+                ctx.font = "bold 82px sans-serif";
+                ctx.textAlign = "right";
+                ctx.fillText("$" + precioFinal, x + ancho, y + 60);
+            }
+        }
+
+        // =========================================================
+        // PLANTILLAS DE OFERTAS
+        
 
         // --- PLANTILLA 1: JUEVES (Mercado Pago - 15%) ---
         async function crearCartelJueves(pData) {
