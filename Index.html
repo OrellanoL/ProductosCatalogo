@@ -62,7 +62,7 @@
             margin-bottom: 6px;
         }
 
-        input[type="text"], input[type="number"], input[type="file"] {
+        input[type="text"], input[type="number"] {
             width: 100%;
             padding: 10px;
             border: 1px solid var(--border-color);
@@ -146,12 +146,12 @@
         }
 
         .status-badge {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: bold;
             color: #15803d;
             background: #dcfce7;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 6px 10px;
+            border-radius: 6px;
             display: inline-block;
         }
 
@@ -173,17 +173,16 @@
 <body>
 
     <div class="card no-print">
-        <h1>📱 Generador de Ofertas con Catálogo</h1>
-        <p class="subtitle">Escanéa con la cámara de tu celular para cargar productos desde tu catálogo.</p>
+        <h1>📱 Generador de Ofertas Online</h1>
+        <p class="subtitle">Catálogo sincronizado desde GitHub en tiempo real.</p>
 
-        <!-- 1. CARGA DE CATÁLOGO BASE -->
+        <!-- ESTADO DEL CATÁLOGO ONLINE -->
         <div class="section-box">
-            <label>1. Cargar Catálogo Base (.csv):</label>
-            <input type="file" id="csvFileInput" accept=".csv" onchange="cargarCatalogoCSV(this)">
-            <div id="statusCatalogo" style="margin-top: 8px;"></div>
+            <label>Estado del Catálogo:</label>
+            <div id="statusCatalogo">⏳ Cargando catálogo online...</div>
         </div>
 
-        <!-- 2. DESCUENTO Y ESCÁNER -->
+        <!-- CONFIGURACIÓN Y ESCÁNER -->
         <div class="section-box">
             <div class="flex-gap" style="margin-bottom: 12px;">
                 <div style="flex: 1;">
@@ -204,8 +203,8 @@
             </div>
         </div>
 
-        <!-- 3. LISTA DE PRODUCTOS SELECCIONADOS -->
-        <label>2. Productos seleccionados hoy (<span id="cantProductos">0</span>):</label>
+        <!-- LISTA DE PRODUCTOS SELECCIONADOS -->
+        <label>Productos seleccionados hoy (<span id="cantProductos">0</span>):</label>
         <div class="scanned-list" id="listaEscaneados"></div>
 
         <div class="flex-gap" style="margin-top: 20px;">
@@ -217,22 +216,29 @@
     </div>
 
     <script>
-        const URL_MP_LOGO = `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/mplogo.png`;
-        const URL_CARREFOUR_LOGO = `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/carrefourexpresslogo.webp`;
+        // URLs Base de Recursos en tu GitHub
+        const URL_CSV_CATALOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/catalogo.csv';
+        const URL_MP_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/mplogo.png';
+        const URL_CARREFOUR_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/carrefourexpresslogo.webp';
 
         let catalogoProductos = {}; 
         let productosAEscanear = []; 
         let html5QrcodeScanner = null;
         let escanerActivo = false;
 
-        // Lectura del CSV exportado desde Excel
-        function cargarCatalogoCSV(input) {
-            const file = input.files[0];
-            if (!file) return;
+        // Carga automática del catálogo al abrir la aplicación
+        window.addEventListener('DOMContentLoaded', () => {
+            cargarCatalogoDesdeURL();
+        });
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
+        async function cargarCatalogoDesdeURL() {
+            const statusDiv = document.getElementById('statusCatalogo');
+
+            try {
+                const respuesta = await fetch(URL_CSV_CATALOGO);
+                if (!respuesta.ok) throw new Error("No se encontró el archivo catalogo.csv en GitHub");
+
+                const text = await respuesta.text();
                 const lineas = text.split('\n');
                 catalogoProductos = {};
                 let contador = 0;
@@ -254,19 +260,20 @@
                     }
                 });
 
-                document.getElementById('statusCatalogo').innerHTML = 
-                    `<span class="status-badge">✓ Catálogo cargado: ${contador} productos listos</span>`;
-            };
-            reader.readAsText(file);
+                statusDiv.innerHTML = `<span class="status-badge">✓ Catálogo online listo (${contador} productos)</span>`;
+            } catch (error) {
+                console.error("Error al cargar catálogo:", error);
+                statusDiv.innerHTML = `<span style="color:red; font-size:0.85rem;">⚠️ Error al conectar con GitHub. Asegúrate de tener subido el archivo <b>catalogo.csv</b> en tu repositorio.</span>`;
+            }
         }
 
-        // Control de la cámara
+        // Control de la cámara para escaneo
         function alternarCamara() {
             const readerDiv = document.getElementById("reader");
             if (escanerActivo) { detenerCamara(); return; }
 
             if (Object.keys(catalogoProductos).length === 0) {
-                alert("Primero debes cargar tu archivo CSV de catálogo.");
+                alert("Aún no se ha cargado el catálogo online o falló la conexión.");
                 return;
             }
 
@@ -278,7 +285,7 @@
                 { fps: 10, qrbox: { width: 250, height: 150 } },
                 onScanSuccess
             ).catch(err => {
-                alert("Error al acceder a la cámara: " + err);
+                alert("Error al abrir la cámara: " + err);
                 readerDiv.style.display = "none";
             });
 
@@ -302,7 +309,7 @@
 
         function buscarEanManual() {
             if (Object.keys(catalogoProductos).length === 0) {
-                alert("Primero debes cargar tu archivo CSV de catálogo.");
+                alert("El catálogo online no está listo.");
                 return;
             }
             const ean = document.getElementById('manualEanInput').value.trim();
@@ -316,7 +323,7 @@
             let productoBase = catalogoProductos[ean];
 
             if (!productoBase) {
-                alert(`⚠️ El EAN ${ean} no existe en el catálogo.`);
+                alert(`⚠️ El código EAN ${ean} no existe en tu catálogo online.`);
                 return;
             }
 
@@ -430,14 +437,14 @@
 
             const palabras = pData.producto.split(" ");
             let linea = "", y = 540;
-            const maxAncho = 310; // Espacio libre a la izquierda del cartel de precio
+            const maxAncho = 310; // Espacio límite horizontal en el cartel
 
             for (let n = 0; n < palabras.length; n++) {
                 let testLinea = linea + palabras[n] + " ";
                 if (ctx.measureText(testLinea).width > maxAncho && n > 0) {
                     ctx.fillText(linea, 75, y);
                     linea = palabras[n] + " ";
-                    y += 30; // Distancia entre líneas
+                    y += 30; // Salto de línea
                 } else {
                     linea = testLinea;
                 }
