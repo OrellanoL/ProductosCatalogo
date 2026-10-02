@@ -471,16 +471,16 @@
 
                 // SI ES JUEVES: Recuadro rojo con letras blancas
                 if (esJueves) {
-                    ctx.fillStyle = "#ff0000";
+                    ctx.fillStyle = "#ffe600";
                     ctx.fillRect(x, y, ancho, alto);
 
-                    ctx.fillStyle = "#ffffff";
+                    ctx.fillStyle = "#001a72";
                     ctx.font = `bold ${fontSize}px sans-serif`;
                     ctx.textAlign = "center";
                     ctx.fillText(textoPrecio, x + (ancho / 2), y + (alto / 2) + (fontSize / 3));
                 } else {
                     // OTROS DÍAS: Solo texto en rojo sin fondo
-                    ctx.fillStyle = "#ff0000";
+                    ctx.fillStyle = "#1e1c6b";
                     ctx.font = `bold ${fontSize}px sans-serif`;
                     ctx.textAlign = "center";
                     ctx.fillText(textoPrecio, x + (ancho / 2), y + (alto / 2) + (fontSize / 3));
@@ -574,6 +574,7 @@
             ctx.textAlign = "center";
             ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 575, 700);
 
+            ctx.fillStyle = "#001a72"";
             ctx.font = "bold 22px sans-serif";
             ctx.fillText("Abonando con QR desde el celular,", canvas.width / 2, 865);
             ctx.fillText("EXCLUSIVO DINERO EN CUENTA.", canvas.width / 2, 892);
