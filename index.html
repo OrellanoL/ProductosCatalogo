@@ -181,3 +181,542 @@
             @page { size: A4 portrait; margin: 0; }
             .preview-grid { display: block !important; }
             .preview-grid img {
+                display: block;
+                page-break-after: always;
+                page-break-inside: avoid;
+                width: 100%;
+                max-height: 100vh;
+                object-fit: contain;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card no-print">
+        <h1>📱 Generador de carteleria</h1>
+        <p class="subtitle">Catálogo sincronizado desde GitHub en tiempo real. Creada por Ludmila - Sugerencias: orellanoludmila@hotmail.com</p>
+
+        <div class="section-box">
+            <label>Estado del Catálogo:</label>
+            <div id="statusCatalogo">⏳ Cargando catálogo online...</div>
+        </div>
+
+        <div class="section-box">
+            <div class="flex-gap" style="margin-bottom: 12px;">
+                <div style="flex: 1;">
+                    <label>Seleccionar Día / Formato:</label>
+                    <select id="tipoPromocionSelect">
+                        <option value="miercoles">Miércoles - Cuenta DNI (10%)</option>
+                        <option value="jueves">Jueves - Mercado Pago (15%)</option>
+                        <option value="viernes">Viernes - Cuenta Digital (15%)</option>
+                        <option value="sabadoDomingo" selected>Sábado y Domingo - Cuenta Digital (10%)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-camera" onclick="alternarCamara()">📷 Escanear Producto con Cámara</button>
+            <div id="reader"></div>
+
+            <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                <label>O ingresar EAN manualmente:</label>
+                <div class="flex-gap">
+                    <input type="text" id="manualEanInput" placeholder="Ej: 7792180144829" style="flex: 1;">
+                    <button class="btn-manual" onclick="buscarEanManual()">Buscar</button>
+                </div>
+            </div>
+        </div>
+
+        <label>Productos seleccionados hoy (<span id="cantProductos">0</span>):</label>
+        <div class="scanned-list" id="listaEscaneados"></div>
+
+        <div class="flex-gap" style="margin-top: 20px;">
+            <button class="btn-calc" onclick="generarTodasLasOfertas()">⚡ Generar Carteles</button>
+            <button class="btn-print" onclick="imprimirPC()">🖨 Imprimir (PC)</button>
+            <button class="btn-manual" style="background: #16a34a;" onclick="descargarPDF()">📥 Descargar PDF (Móvil / PC)</button>
+        </div>
+
+        <div class="preview-grid" id="previewGrid"></div>
+    </div>
+
+    <script>
+        const URL_CSV_CATALOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/catalogo.csv';
+        const URL_MP_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/mplogo.png';
+        const URL_CARREFOUR_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/carrefourexpresslogo.webp';
+        const URL_CUENTA_DNI_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/cuentadnilogo.jpg';
+        const URL_MI_CARREFOUR_LOGO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/micarrefour.jpg';
+        
+        const URL_BANNER_VIERNES_SUP = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerviernes_2.jpg';
+        const URL_BANNER_VIERNES_INF = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerviernesabajo_2.jpg';
+        const URL_BANNER_SD_SUP = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannersabadoydomingo_2.jpg';
+        const URL_BANNER_SD_INF = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannersabadoydomingobajo_2.jpg';
+
+        let catalogoProductos = {}; 
+        let productosAEscanear = []; 
+        let html5QrcodeScanner = null;
+        let escanerActivo = false;
+
+        function formatearPrecio(valor) {
+            return Math.round(valor).toString();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            cargarCatalogoDesdeURL();
+        });
+
+        async function cargarCatalogoDesdeURL() {
+            const statusDiv = document.getElementById('statusCatalogo');
+            try {
+                const respuesta = await fetch(URL_CSV_CATALOGO);
+                if (!respuesta.ok) throw new Error("No se encontró el archivo catalogo.csv en GitHub");
+
+                const text = await respuesta.text();
+                const lineas = text.split('\n');
+                catalogoProductos = {};
+                let contador = 0;
+
+                lineas.forEach((linea, idx) => {
+                    if (idx === 0 || !linea.trim()) return; 
+                    const cols = linea.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                    
+                    if (cols.length >= 2) {
+                        const ean = cols[0];
+                        catalogoProductos[ean] = {
+                            ean: ean,
+                            producto: cols[1] || "PRODUCTO",
+                            fotoUrl: cols[4] || `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/${ean}.webp`
+                        };
+                        contador++;
+                    }
+                });
+
+                statusDiv.innerHTML = `<span class="status-badge">✓ Catálogo online listo (${contador} productos)</span>`;
+            } catch (error) {
+                statusDiv.innerHTML = `<span style="color:red; font-size:0.85rem;">⚠️ Error al conectar con GitHub.</span>`;
+            }
+        }
+
+        function alternarCamara() {
+            const readerDiv = document.getElementById("reader");
+            if (escanerActivo) { detenerCamara(); return; }
+
+            readerDiv.style.display = "block";
+            html5QrcodeScanner = new Html5Qrcode("reader");
+
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 150 } },
+                onScanSuccess
+            ).catch(err => {
+                alert("Error al abrir la cámara: " + err);
+                readerDiv.style.display = "none";
+            });
+
+            escanerActivo = true;
+        }
+
+        function detenerCamara() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    document.getElementById("reader").style.display = "none";
+                    escanerActivo = false;
+                    html5QrcodeScanner = null;
+                });
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            detenerCamara();
+            procesarEAN(decodedText.trim());
+        }
+
+        function buscarEanManual() {
+            const ean = document.getElementById('manualEanInput').value.trim();
+            if (ean) {
+                procesarEAN(ean);
+                document.getElementById('manualEanInput').value = '';
+            }
+        }
+
+        function procesarEAN(ean) {
+            let productoBase = catalogoProductos[ean];
+
+            if (!productoBase) {
+                const nombreManual = prompt(`El EAN ${ean} no existe en el catálogo.\n\nIngresá el nombre:`);
+                if (!nombreManual) return;
+
+                productoBase = {
+                    ean: ean,
+                    producto: nombreManual.toUpperCase(),
+                    fotoUrl: `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/${ean}.webp`
+                };
+            }
+
+            const precio = prompt(`Producto: ${productoBase.producto}\n\nIngresá el Precio Regular actual ($):`, "1000");
+            if (precio === null) return;
+
+            productosAEscanear.push({
+                ...productoBase,
+                precioRegular: parseFloat(precio.replace(',', '.')) || 0,
+                esMiCarrefour: false,
+                promocionSegunda: 'ninguna'
+            });
+            actualizarListaUI();
+        }
+
+        function actualizarListaUI() {
+            const contenedor = document.getElementById('listaEscaneados');
+            document.getElementById('cantProductos').innerText = productosAEscanear.length;
+            contenedor.innerHTML = '';
+
+            productosAEscanear.forEach((p, idx) => {
+                contenedor.innerHTML += `
+                    <div class="item-row">
+                        <div class="item-info">
+                            <strong>${p.producto}</strong>
+                            <span>EAN: ${p.ean}</span>
+                        </div>
+                        <label class="checkbox-label">
+                            <input type="checkbox" ${p.esMiCarrefour ? 'checked' : ''} 
+                                   onchange="productosAEscanear[${idx}].esMiCarrefour = this.checked">
+                            Mi Carrefour
+                        </label>
+                        <div>
+                            <select class="select-promo-item" onchange="productosAEscanear[${idx}].promocionSegunda = this.value">
+                                <option value="ninguna" ${p.promocionSegunda === 'ninguna' ? 'selected' : ''}>Sin Promo 2do</option>
+                                <option value="50" ${p.promocionSegunda === '50' ? 'selected' : ''}>2do al 50%</option>
+                                <option value="70" ${p.promocionSegunda === '70' ? 'selected' : ''}>2do al 70%</option>
+                            </select>
+                        </div>
+                        <input type="number" step="0.01" class="item-price-input" value="${p.precioRegular}" 
+                               onchange="productosAEscanear[${idx}].precioRegular = parseFloat(this.value) || 0">
+                        <button class="btn-danger" onclick="eliminarProducto(${idx})">✕</button>
+                    </div>
+                `;
+            });
+        }
+
+        function eliminarProducto(idx) {
+            productosAEscanear.splice(idx, 1);
+            actualizarListaUI();
+        }
+
+        function cargarImagen(src) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = src;
+            });
+        }
+
+        function dibujarCuadroPrecio(ctx, x, y, ancho, alto, precioFinalNum, pData, imgMiCarrefour, esJueves = false) {
+            const textoPrecio = "$" + formatearPrecio(precioFinalNum);
+            const esMiCarrefour = pData.esMiCarrefour;
+            const tienePromo2do = pData.promocionSegunda && pData.promocionSegunda !== 'ninguna';
+
+            if (tienePromo2do) {
+                ctx.fillStyle = "#000000";
+                ctx.font = "bold 13px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("LLEVANDO 2 UNIDADES PAGÁS C/U:", x + (ancho / 2), y - 6);
+            }
+
+            if (esMiCarrefour) {
+                const colorMorado = "#633166";
+                const anchoBarraLogo = Math.round(ancho * 0.28);
+                const anchoCajaBlanca = ancho - anchoBarraLogo;
+
+                ctx.fillStyle = colorMorado;
+                ctx.fillRect(x, y, ancho, alto);
+
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(x + anchoBarraLogo, y + 4, anchoCajaBlanca - 4, alto - 8);
+
+                if (imgMiCarrefour) {
+                    const margin = 8;
+                    const maxW = anchoBarraLogo - margin;
+                    const maxH = alto - margin;
+                    let scale = Math.min(maxW / imgMiCarrefour.width, maxH / imgMiCarrefour.height);
+                    let w = imgMiCarrefour.width * scale;
+                    let h = imgMiCarrefour.height * scale;
+                    ctx.drawImage(imgMiCarrefour, x + (anchoBarraLogo - w) / 2, y + (alto - h) / 2, w, h);
+                }
+
+                ctx.fillStyle = colorMorado;
+                let fontSize = 54;
+                if (textoPrecio.length > 8) fontSize = 42;
+                if (textoPrecio.length > 10) fontSize = 36;
+                
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                ctx.textAlign = "center";
+                ctx.fillText(textoPrecio, x + anchoBarraLogo + (anchoCajaBlanca / 2), y + (alto / 2) + (fontSize / 3));
+
+            } else {
+                let fontSize = 70;
+                if (textoPrecio.length > 8) fontSize = 55;
+                if (textoPrecio.length > 10) fontSize = 45;
+
+                if (esJueves) {
+                    ctx.fillStyle = "#ffe600";
+                    ctx.fillRect(x, y, ancho, alto);
+
+                    ctx.fillStyle = "#001a72";
+                    ctx.font = `bold ${fontSize}px sans-serif`;
+                    ctx.textAlign = "center";
+                    ctx.fillText(textoPrecio, x + (ancho / 2), y + (alto / 2) + (fontSize / 3));
+                } else {
+                    ctx.fillStyle = "#1e1c6b";
+                    ctx.font = `bold ${fontSize}px sans-serif`;
+                    ctx.textAlign = "center";
+                    ctx.fillText(textoPrecio, x + (ancho / 2), y + (alto / 2) + (fontSize / 3));
+                }
+            }
+        }
+
+        function calcularPrecioFinal(pData, pctDia) {
+            let base = pData.precioRegular;
+            
+            if (pData.promocionSegunda === '50') {
+                base = base * 0.75; 
+            } else if (pData.promocionSegunda === '70') {
+                base = base * 0.65; 
+            }
+
+            return base * (1 - pctDia / 100);
+        }
+
+        // =========================================================
+        // PLANTILLAS DE CARTEL
+        // =========================================================
+
+        async function crearCartelJueves(pData) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800; canvas.height = 980;
+            const ctx = canvas.getContext('2d');
+            const pctDescuento = 15;
+
+            const [imgProducto, imgMp, imgCarrefour, imgMiCarrefour] = await Promise.all([
+                cargarImagen(pData.fotoUrl),
+                cargarImagen(URL_MP_LOGO),
+                cargarImagen(URL_CARREFOUR_LOGO),
+                cargarImagen(URL_MI_CARREFOUR_LOGO)
+            ]);
+
+            ctx.fillStyle = "#ffe600";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#001a72";
+            ctx.font = "900 48px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("HOY JUEVES CON", canvas.width / 2, 75);
+
+            if (imgMp) {
+                const w = 150, h = (imgMp.height / imgMp.width) * w;
+                ctx.drawImage(imgMp, (canvas.width / 2) - (w / 2), 95, w, h);
+            }
+
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(50, 180, 700, 480);
+            ctx.strokeStyle = "#001a72";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(50, 180, 700, 480);
+
+            if (imgProducto) {
+                const maxW = 400, maxH = 400;
+                let scale = Math.min(maxW / imgProducto.width, maxH / imgProducto.height);
+                let w = imgProducto.width * scale;
+                let h = imgProducto.height * scale;
+                ctx.drawImage(imgProducto, (canvas.width - w) / 2, 190 + (maxH - h) / 2, w, h);
+            }
+
+            ctx.fillStyle = "#001a72";
+            ctx.font = "bold 32px sans-serif";
+            ctx.fillText(pData.producto, canvas.width / 2, 630);
+
+            ctx.font = "bold 24px sans-serif";
+            ctx.fillStyle = "#333333";
+            ctx.fillText(`Precio Regular: $${pData.precioRegular.toFixed(2)}`, canvas.width / 2, 690);
+
+            const precioFinal = calcularPrecioFinal(pData, pctDescuento);
+            dibujarCuadroPrecio(ctx, 100, 730, 600, 120, precioFinal, pData, imgMiCarrefour, true);
+
+            if (imgCarrefour) {
+                const w = 200, h = (imgCarrefour.height / imgCarrefour.width) * w;
+                ctx.drawImage(imgCarrefour, (canvas.width - w) / 2, 880, w, h);
+            }
+
+            return canvas;
+        }
+
+        async function crearCartelMiercoles(pData) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800; canvas.height = 980;
+            const ctx = canvas.getContext('2d');
+            const pctDescuento = 10;
+
+            const [imgProducto, imgDni, imgCarrefour, imgMiCarrefour] = await Promise.all([
+                cargarImagen(pData.fotoUrl),
+                cargarImagen(URL_CUENTA_DNI_LOGO),
+                cargarImagen(URL_CARREFOUR_LOGO),
+                cargarImagen(URL_MI_CARREFOUR_LOGO)
+            ]);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#00875a";
+            ctx.fillRect(0, 0, canvas.width, 160);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "900 42px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("MIÉRCOLES CON CUENTA DNI", canvas.width / 2, 60);
+
+            if (imgDni) {
+                const w = 120, h = (imgDni.height / imgDni.width) * w;
+                ctx.drawImage(imgDni, (canvas.width / 2) - (w / 2), 75, w, h);
+            }
+
+            if (imgProducto) {
+                const maxW = 400, maxH = 400;
+                let scale = Math.min(maxW / imgProducto.width, maxH / imgProducto.height);
+                let w = imgProducto.width * scale;
+                let h = imgProducto.height * scale;
+                ctx.drawImage(imgProducto, (canvas.width - w) / 2, 190 + (maxH - h) / 2, w, h);
+            }
+
+            ctx.fillStyle = "#001a72";
+            ctx.font = "bold 32px sans-serif";
+            ctx.fillText(pData.producto, canvas.width / 2, 630);
+
+            ctx.font = "bold 24px sans-serif";
+            ctx.fillStyle = "#333333";
+            ctx.fillText(`Precio Regular: $${pData.precioRegular.toFixed(2)}`, canvas.width / 2, 690);
+
+            const precioFinal = calcularPrecioFinal(pData, pctDescuento);
+            dibujarCuadroPrecio(ctx, 100, 730, 600, 120, precioFinal, pData, imgMiCarrefour, false);
+
+            if (imgCarrefour) {
+                const w = 200, h = (imgCarrefour.height / imgCarrefour.width) * w;
+                ctx.drawImage(imgCarrefour, (canvas.width - w) / 2, 880, w, h);
+            }
+
+            return canvas;
+        }
+
+        async function crearCartelBanner(pData, urlBannerSup, urlBannerInf, pctDescuento) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800; canvas.height = 980;
+            const ctx = canvas.getContext('2d');
+
+            const [imgProducto, imgSup, imgInf, imgMiCarrefour] = await Promise.all([
+                cargarImagen(pData.fotoUrl),
+                cargarImagen(urlBannerSup),
+                cargarImagen(urlBannerInf),
+                cargarImagen(URL_MI_CARREFOUR_LOGO)
+            ]);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (imgSup) {
+                ctx.drawImage(imgSup, 0, 0, canvas.width, 180);
+            }
+
+            if (imgProducto) {
+                const maxW = 380, maxH = 380;
+                let scale = Math.min(maxW / imgProducto.width, maxH / imgProducto.height);
+                let w = imgProducto.width * scale;
+                let h = imgProducto.height * scale;
+                ctx.drawImage(imgProducto, (canvas.width - w) / 2, 200 + (maxH - h) / 2, w, h);
+            }
+
+            ctx.fillStyle = "#001a72";
+            ctx.font = "bold 32px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(pData.producto, canvas.width / 2, 610);
+
+            ctx.font = "bold 24px sans-serif";
+            ctx.fillStyle = "#333333";
+            ctx.fillText(`Precio Regular: $${pData.precioRegular.toFixed(2)}`, canvas.width / 2, 660);
+
+            const precioFinal = calcularPrecioFinal(pData, pctDescuento);
+            dibujarCuadroPrecio(ctx, 100, 700, 600, 120, precioFinal, pData, imgMiCarrefour, false);
+
+            if (imgInf) {
+                ctx.drawImage(imgInf, 0, 840, canvas.width, 140);
+            }
+
+            return canvas;
+        }
+
+        // =========================================================
+        // ACCIONES GENERALES
+        // =========================================================
+
+        async function generarTodasLasOfertas() {
+            if (productosAEscanear.length === 0) {
+                alert("Primero debes agregar al menos un producto.");
+                return;
+            }
+
+            const grid = document.getElementById('previewGrid');
+            grid.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">⚡ Generando carteles...</p>';
+
+            const tipoPromo = document.getElementById('tipoPromocionSelect').value;
+            grid.innerHTML = '';
+
+            for (const prod of productosAEscanear) {
+                let canvas;
+                if (tipoPromo === 'jueves') {
+                    canvas = await crearCartelJueves(prod);
+                } else if (tipoPromo === 'miercoles') {
+                    canvas = await crearCartelMiercoles(prod);
+                } else if (tipoPromo === 'viernes') {
+                    canvas = await crearCartelBanner(prod, URL_BANNER_VIERNES_SUP, URL_BANNER_VIERNES_INF, 15);
+                } else {
+                    // Sabado y Domingo
+                    canvas = await crearCartelBanner(prod, URL_BANNER_SD_SUP, URL_BANNER_SD_INF, 10);
+                }
+
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL('image/png');
+                grid.appendChild(img);
+            }
+        }
+
+        function imprimirPC() {
+            if (document.querySelectorAll('#previewGrid img').length === 0) {
+                alert("Generá los carteles antes de imprimir.");
+                return;
+            }
+            window.print();
+        }
+
+        async function descargarPDF() {
+            const imagenes = document.querySelectorAll('#previewGrid img');
+            if (imagenes.length === 0) {
+                alert("Primero debes generar los carteles.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'p',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            imagenes.forEach((img, idx) => {
+                if (idx > 0) doc.addPage();
+                doc.addImage(img.src, 'PNG', 0, 0, 210, 297);
+            });
+
+            doc.save('Carteles_Promocionales.pdf');
+        }
+    </script>
+</body>
+</html>
