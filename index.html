@@ -250,3 +250,279 @@
         const URL_BANNER_VIERNES_SUP = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerviernes_2.jpg';
         const URL_BANNER_VIERNES_INF = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannerviernesabajo_2.jpg';
         const URL_BANNER_SD_SUP = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannersabadoydomingo_2.jpg';
+        const URL_BANNER_SD_INF = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/bannersabadoydomingobajo_2.jpg';
+
+        let catalogoProductos = {}; 
+        let productosAEscanear = []; 
+        let html5QrcodeScanner = null;
+        let escanerActivo = false;
+
+        function formatearPrecio(valor) {
+            return Math.round(valor).toString();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            cargarCatalogoDesdeURL();
+        });
+
+        async function cargarCatalogoDesdeURL() {
+            const statusDiv = document.getElementById('statusCatalogo');
+            try {
+                const respuesta = await fetch(URL_CSV_CATALOGO);
+                if (!respuesta.ok) throw new Error("No se encontró el archivo catalogo.csv en GitHub");
+
+                const text = await respuesta.text();
+                const lineas = text.split('\n');
+                catalogoProductos = {};
+                let contador = 0;
+
+                lineas.forEach((linea, idx) => {
+                    if (idx === 0 || !linea.trim()) return; 
+                    const cols = linea.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                    
+                    if (cols.length >= 2) {
+                        const ean = cols[0];
+                        catalogoProductos[ean] = {
+                            ean: ean,
+                            producto: cols[1] || "PRODUCTO",
+                            fotoUrl: cols[4] || `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/${ean}.webp`
+                        };
+                        contador++;
+                    }
+                });
+
+                statusDiv.innerHTML = `<span class="status-badge">✓ Catálogo online listo (${contador} productos)</span>`;
+            } catch (error) {
+                statusDiv.innerHTML = `<span style="color:red; font-size:0.85rem;">⚠️ Error al conectar con GitHub.</span>`;
+            }
+        }
+
+        function alternarCamara() {
+            const readerDiv = document.getElementById("reader");
+            if (escanerActivo) { detenerCamara(); return; }
+
+            readerDiv.style.display = "block";
+            html5QrcodeScanner = new Html5Qrcode("reader");
+
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 150 } },
+                onScanSuccess
+            ).catch(err => {
+                alert("Error al abrir la cámara: " + err);
+                readerDiv.style.display = "none";
+            });
+
+            escanerActivo = true;
+        }
+
+        function detenerCamara() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    document.getElementById("reader").style.display = "none";
+                    escanerActivo = false;
+                    html5QrcodeScanner = null;
+                });
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            detenerCamara();
+            procesarEAN(decodedText.trim());
+        }
+
+        function buscarEanManual() {
+            const ean = document.getElementById('manualEanInput').value.trim();
+            if (ean) {
+                procesarEAN(ean);
+                document.getElementById('manualEanInput').value = '';
+            }
+        }
+
+        function procesarEAN(ean) {
+            let productoBase = catalogoProductos[ean];
+
+            if (!productoBase) {
+                const nombreManual = prompt(`El EAN ${ean} no existe en el catálogo.\n\nIngresá el nombre:`);
+                if (!nombreManual) return;
+
+                productoBase = {
+                    ean: ean,
+                    producto: nombreManual.toUpperCase(),
+                    fotoUrl: `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/${ean}.webp`
+                };
+            }
+
+            const precio = prompt(`Producto: ${productoBase.producto}\n\nIngresá el Precio Regular actual ($):`, "1000");
+            if (precio === null) return;
+
+            productosAEscanear.push({
+                ...productoBase,
+                precioRegular: parseFloat(precio.replace(',', '.')) || 0,
+                esMiCarrefour: false,
+                promocionSegunda: 'ninguna'
+            });
+            actualizarListaUI();
+        }
+
+        function actualizarListaUI() {
+            const contenedor = document.getElementById('listaEscaneados');
+            document.getElementById('cantProductos').innerText = productosAEscanear.length;
+            contenedor.innerHTML = '';
+
+            productosAEscanear.forEach((p, idx) => {
+                contenedor.innerHTML += `
+                    <div class="item-row">
+                        <div class="item-info">
+                            <strong>${p.producto}</strong>
+                            <span>EAN: ${p.ean}</span>
+                        </div>
+                        <label class="checkbox-label">
+                            <input type="checkbox" ${p.esMiCarrefour ? 'checked' : ''} 
+                                   onchange="productosAEscanear[${idx}].esMiCarrefour = this.checked">
+                            Mi Carrefour
+                        </label>
+                        <div>
+                            <select class="select-promo-item" onchange="productosAEscanear[${idx}].promocionSegunda = this.value">
+                                <option value="ninguna" ${p.promocionSegunda === 'ninguna' ? 'selected' : ''}>Sin Promo 2do</option>
+                                <option value="50" ${p.promocionSegunda === '50' ? 'selected' : ''}>2do al 50%</option>
+                                <option value="70" ${p.promocionSegunda === '70' ? 'selected' : ''}>2do al 70%</option>
+                            </select>
+                        </div>
+                        <input type="number" step="0.01" class="item-price-input" value="${p.precioRegular}" 
+                               onchange="productosAEscanear[${idx}].precioRegular = parseFloat(this.value) || 0">
+                        <button class="btn-danger" onclick="eliminarProducto(${idx})">✕</button>
+                    </div>
+                `;
+            });
+        }
+
+        function eliminarProducto(idx) {
+            productosAEscanear.splice(idx, 1);
+            actualizarListaUI();
+        }
+
+        function cargarImagen(src) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = src;
+            });
+        }
+
+        // =========================================================
+        // DIBUJA EL CUADRO DE PRECIO CON TEXTO DE "LLEVANDO 2" SI APLICA
+        // =========================================================
+        function dibujarCuadroPrecio(ctx, x, y, ancho, alto, precioFinalNum, pData, imgMiCarrefour, esJueves = false) {
+            const textoPrecio = "$" + formatearPrecio(precioFinalNum);
+            const esMiCarrefour = pData.esMiCarrefour;
+            const tienePromo2do = pData.promocionSegunda && pData.promocionSegunda !== 'ninguna';
+
+            // Aclaración "LLEVANDO 2 UNIDADES PAGÁS C/U:" arriba de la caja
+            if (tienePromo2do) {
+                ctx.fillStyle = "#000000";
+                ctx.font = "bold 13px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("LLEVANDO 2 UNIDADES PAGÁS C/U:", x + (ancho / 2), y - 6);
+            }
+
+            if (esMiCarrefour) {
+                const colorMorado = "#633166";
+                const anchoBarraLogo = Math.round(ancho * 0.28);
+                const anchoCajaBlanca = ancho - anchoBarraLogo;
+
+                ctx.fillStyle = colorMorado;
+                ctx.fillRect(x, y, ancho, alto);
+
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(x + anchoBarraLogo, y + 4, anchoCajaBlanca - 4, alto - 8);
+
+                if (imgMiCarrefour) {
+                    const margin = 8;
+                    const maxW = anchoBarraLogo - margin;
+                    const maxH = alto - margin;
+                    let scale = Math.min(maxW / imgMiCarrefour.width, maxH / imgMiCarrefour.height);
+                    let w = imgMiCarrefour.width * scale;
+                    let h = imgMiCarrefour.height * scale;
+                    ctx.drawImage(imgMiCarrefour, x + (anchoBarraLogo - w) / 2, y + (alto - h) / 2, w, h);
+                }
+
+                ctx.fillStyle = colorMorado;
+                let fontSize = 54;
+                if (textoPrecio.length > 8) fontSize = 42;
+                if (textoPrecio.length > 10) fontSize = 36;
+                
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                ctx.textAlign = "center";
+                ctx.fillText(textoPrecio, x + anchoBarraLogo + (anchoCajaBlanca / 2), y + (alto / 2) + (fontSize / 3));
+
+            } else {
+                let fontSize = 70;
+                if (textoPrecio.length > 8) fontSize = 55;
+                if (textoPrecio.length > 10) fontSize = 45;
+
+                if (esJueves) {
+                    ctx.fillStyle = "#ffe600";
+                    ctx.fillRect(x, y, ancho, alto);
+
+                    ctx.fillStyle = "#001a72";
+                    ctx.font = `bold ${fontSize}px sans-serif`;
+                    ctx.textAlign = "center";
+                    ctx.fillText(textoPrecio, x + (ancho / 2), y + (alto / 2) + (fontSize / 3));
+                } else {
+                    ctx.fillStyle = "#1e1c6b";
+                    ctx.font = `bold ${fontSize}px sans-serif`;
+                    ctx.textAlign = "center";
+                    ctx.fillText(textoPrecio, x + (ancho / 2), y + (alto / 2) + (fontSize / 3));
+                }
+            }
+        }
+
+        function calcularPrecioFinal(pData, pctDia) {
+            let base = pData.precioRegular;
+            
+            if (pData.promocionSegunda === '50') {
+                base = base * 0.75; 
+            } else if (pData.promocionSegunda === '70') {
+                base = base * 0.65; 
+            }
+
+            return base * (1 - pctDia / 100);
+        }
+
+        // =========================================================
+        // PLANTILLAS DE CARTEL
+        // =========================================================
+
+        async function crearCartelJueves(pData) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800; canvas.height = 980;
+            const ctx = canvas.getContext('2d');
+            const pctDescuento = 15;
+            const tienePromo2do = pData.promocionSegunda && pData.promocionSegunda !== 'ninguna';
+
+            const [imgProducto, imgMp, imgCarrefour, imgMiCarrefour] = await Promise.all([
+                cargarImagen(pData.fotoUrl),
+                cargarImagen(URL_MP_LOGO),
+                cargarImagen(URL_CARREFOUR_LOGO),
+                cargarImagen(URL_MI_CARREFOUR_LOGO)
+            ]);
+
+            ctx.fillStyle = "#ffe600";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#001a72";
+            ctx.font = "900 48px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("HOY JUEVES CON", canvas.width / 2, 75);
+
+            if (imgMp) {
+                const w = 150, h = (imgMp.height / imgMp.width) * w;
+                ctx.drawImage(imgMp, (canvas.width / 2) - (w / 2), 95, w, h);
+            }
+
+            ctx.fillStyle = "#ffffff";
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "#0
