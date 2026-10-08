@@ -97,6 +97,9 @@
         .btn-print { background: #e4e4e7; color: #18181b; flex: 1; }
         .btn-danger { background: #ef4444; color: white; padding: 6px 10px; font-size: 0.8rem; }
 
+        .btn-fav { background: #f59e0b; color: white; padding: 6px 12px; font-size: 0.85rem; }
+        .btn-fav-active { background: #10b981; color: white; padding: 6px 12px; font-size: 0.85rem; cursor: default; }
+
         #reader {
             width: 100%;
             max-width: 450px;
@@ -148,8 +151,15 @@
         }
 
         .item-price-input {
-            width: 100px !important;
+            width: 90px !important;
             text-align: right;
+            padding: 6px !important;
+        }
+
+        .item-copias-input {
+            width: 60px !important;
+            text-align: center;
+            padding: 6px !important;
         }
 
         .preview-grid {
@@ -175,6 +185,105 @@
             display: inline-block;
         }
 
+        /* BUSCADOR CON AUTOCOMPLETADO */
+        .search-container {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .search-results-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .search-item {
+            padding: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .search-item:hover {
+            background-color: #e0f2fe;
+        }
+
+        /* ESTILOS DE LA VENTANA DE CARGA PC */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .modal-card {
+            background: white;
+            width: 90%;
+            max-width: 580px;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            position: relative;
+        }
+
+        .barcode-box {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
+        }
+
+        .barcode-box img {
+            max-width: 100%;
+            height: 85px;
+            object-fit: contain;
+        }
+
+        .step-pill {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .modal-config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
         @media print {
             .no-print { display: none !important; }
             body { padding: 0; background: white; }
@@ -195,7 +304,9 @@
 <body>
 
     <div class="card no-print">
-        <h1>📱 Generador de carteleria - </h1>
+        <div style="margin-bottom: 10px;">
+            <h1>📱 Generador de carteleria</h1>
+        </div>
         <p class="subtitle">Catálogo sincronizado desde GitHub en tiempo real. Creada por Ludmila - Sugerencias: orellanoludmila@hotmail.com</p>
 
         <div class="section-box">
@@ -203,53 +314,209 @@
             <div id="statusCatalogo">⏳ Cargando catálogo online...</div>
         </div>
 
-        <div class="section-box">
-            <div class="flex-gap" style="margin-bottom: 12px;">
-                <div style="flex: 1;">
-                    <label>Seleccionar Día / Formato:</label>
-                    <select id="tipoPromocionSelect">
-                        <option value="martes">Martes - Tarjeta Crédito Carrefour (20%)</option>
-                        <option value="miercoles">Miércoles - Cuenta DNI (10%)</option>
-                        <option value="jueves">Jueves - Mercado Pago (15%)</option>
-                        <option value="viernes">Viernes - Cuenta Digital (15%)</option>
-                        <option value="sabadoDomingo" selected>Sábado y Domingo - Cuenta Digital (10%)</option>
-                        <option value="mayores60">Mayores de 60 / ANSES (10%)</option>
-                    </select>
+        <div class="section-box" style="margin-bottom: 15px;">
+            <label>Seleccionar Día / Formato de Promoción:</label>
+            <select id="tipoPromocionSelect">
+                <option value="martes">Martes - Tarjeta Crédito Carrefour (20%)</option>
+                <option value="miercoles">Miércoles - Cuenta DNI (10%)</option>
+                <option value="jueves">Jueves - Mercado Pago (15%)</option>
+                <option value="viernes">Viernes - Cuenta Digital (15%)</option>
+                <option value="sabadoDomingo" selected>Sábado y Domingo - Cuenta Digital (10%)</option>
+                <option value="mayores60">Mayores de 60 / ANSES (10%)</option>
+            </select>
+        </div>
+
+        <!-- ================= VISTA DE ESCANEO / PRINCIPAL ================= -->
+        <div id="seccionEscaneo">
+            <div class="section-box">
+                <button class="btn-camera" onclick="alternarCamara()">📷 Escanear Producto con Cámara</button>
+                <div id="reader"></div>
+
+                <div style="margin-top: 15px; text-align: center;">
+                    <button class="btn-manual" style="background: #0284c7; width: 100%; font-size: 1rem; padding: 12px;" onclick="mostrarSeccion('modoPC')">
+                        💻 VERSIÓN PC + APP CARREFOUR
+                    </button>
+                </div>
+
+                <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <!-- BUSCADOR POR TEXTO -->
+                    <label>🔍 Buscar por Nombre (ej: Aceite, Yerba, Azúcar):</label>
+                    <div class="search-container">
+                        <input type="text" id="inputBuscadorTexto" placeholder="Escribí el nombre del producto..." oninput="filtrarProductosPorTexto(this.value, 'listaResultadosBusqueda')">
+                        <div id="listaResultadosBusqueda" class="search-results-list"></div>
+                    </div>
+
+                    <label>📋 O Seleccionar del catálogo desplegable:</label>
+                    <div class="flex-gap" style="margin-bottom: 12px;">
+                        <select id="selectCatalogo" onchange="seleccionarDesdeDesplegable('selectCatalogo')" style="flex: 1;">
+                            <option value="">-- Buscar / Elegir producto de la lista --</option>
+                        </select>
+                    </div>
+
+                    <label>O ingresar EAN manualmente:</label>
+                    <div class="flex-gap">
+                        <input type="text" id="manualEanInput" placeholder="Ej: 7792180144829" style="flex: 1;">
+                        <button class="btn-manual" onclick="buscarEanManual()">Buscar</button>
+                    </div>
                 </div>
             </div>
 
-            <button class="btn-camera" onclick="alternarCamara()">📷 Escanear Producto con Cámara</button>
-            <div id="reader"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+                <label style="margin: 0;">Productos seleccionados hoy (<span id="cantProductos">0</span>):</label>
+                
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button class="btn-manual" style="background: #f59e0b; padding: 6px 12px; font-size: 0.85rem;" onclick="mostrarSeccion('favoritos')">
+                        ⭐ Mis Productos Favoritos
+                    </button>
+                    <button class="btn-danger" style="padding: 6px 12px; font-size: 0.85rem;" onclick="vaciarListaCompleta()">
+                        🗑 Vaciar Lista
+                    </button>
+                </div>
+            </div>
 
-            <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
-                <label>📋 Seleccionar producto del catálogo:</label>
-                <div class="flex-gap" style="margin-bottom: 12px;">
-                    <select id="selectCatalogo" onchange="seleccionarDesdeDesplegable()" style="flex: 1;">
+            <div class="scanned-list" id="listaEscaneados"></div>
+
+            <div class="flex-gap" style="margin-top: 20px;">
+                <button class="btn-calc" onclick="generarCartelesDeLista(productosAEscanear)">⚡ Generar Carteles (Escaneados)</button>
+                <button class="btn-print" onclick="imprimirPC()">🖨 Imprimir (PC)</button>
+                <button class="btn-manual" style="background: #16a34a;" onclick="descargarPDF()">📥 Descargar PDF (Móvil / PC)</button>
+            </div>
+        </div>
+
+        <!-- ================= VISTA MODO PC + APP CARREFOUR ================= -->
+        <div id="seccionModoPC" style="display: none;">
+            <div class="section-box" style="background: #f0f9ff; border-color: #bae6fd;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h2 style="margin: 0; color: #0369a1; font-size: 1.2rem;">💻 VERSIÓN PC + APP CARREFOUR</h2>
+                        <small style="color: #0284c7;">Buscá el producto. Al seleccionarlo, se abrirá el código de barras para escanearlo con la app e ingresar su precio.</small>
+                    </div>
+                    <button class="btn-manual" style="background: #6b7280;" onclick="mostrarSeccion('escaneo')">
+                        ⬅️ Volver al Modo Escáner
+                    </button>
+                </div>
+
+                <!-- BUSCADOR POR TEXTO EN MODO PC -->
+                <label>🔍 Buscar por Nombre (ej: Aceite, Yerba, Azúcar):</label>
+                <div class="search-container">
+                    <input type="text" id="inputBuscadorTextoPC" placeholder="Escribí el nombre del producto..." oninput="filtrarProductosPorTexto(this.value, 'listaResultadosBusquedaPC')">
+                    <div id="listaResultadosBusquedaPC" class="search-results-list"></div>
+                </div>
+
+                <label style="margin-top: 10px;">📋 O Seleccionar del catálogo desplegable:</label>
+                <div class="flex-gap">
+                    <select id="selectCatalogoPC" onchange="seleccionarDesdeDesplegable('selectCatalogoPC')" style="flex: 1;">
                         <option value="">-- Buscar / Elegir producto de la lista --</option>
                     </select>
                 </div>
+            </div>
 
-                <label>O ingresar EAN manualmente:</label>
-                <div class="flex-gap">
-                    <input type="text" id="manualEanInput" placeholder="Ej: 7792180144829" style="flex: 1;">
-                    <button class="btn-manual" onclick="buscarEanManual()">Buscar</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+                <label style="margin: 0;">Productos seleccionados hoy (<span id="cantProductosPC">0</span>):</label>
+                
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button class="btn-manual" style="background: #f59e0b; padding: 6px 12px; font-size: 0.85rem;" onclick="mostrarSeccion('favoritos')">
+                        ⭐ Mis Productos Favoritos
+                    </button>
+                    <button class="btn-danger" style="padding: 6px 12px; font-size: 0.85rem;" onclick="vaciarListaCompleta()">
+                        🗑 Vaciar Lista
+                    </button>
+                </div>
+            </div>
+
+            <div class="scanned-list" id="listaEscaneadosPC"></div>
+
+            <div class="flex-gap" style="margin-top: 20px;">
+                <button class="btn-calc" onclick="generarCartelesDeLista(productosAEscanear)">⚡ Generar Carteles</button>
+                <button class="btn-print" onclick="imprimirPC()">🖨 Imprimir (PC)</button>
+                <button class="btn-manual" style="background: #16a34a;" onclick="descargarPDF()">📥 Descargar PDF</button>
+            </div>
+        </div>
+
+        <!-- ================= VISTA DE FAVORITOS ================= -->
+        <div id="seccionFavoritos" style="display: none;">
+            <div class="section-box" style="background: #fffbe3; border-color: #fef08a;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h2 style="margin: 0; color: #b45309; font-size: 1.2rem;">⭐ Mis Productos Favoritos</h2>
+                        <small style="color: #854d0e;">Ajustá los precios, definí las copias requeridas y generá todos los carteles en un solo paso.</small>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-manual" style="background: #0284c7;" onclick="iniciarCargaPreciosPC()">
+                            💻 VERSIÓN PC + APP CARREFOUR
+                        </button>
+                        <button class="btn-manual" style="background: #6b7280;" onclick="mostrarSeccion('escaneo')">
+                            ⬅️ Volver al Escáner
+                        </button>
+                    </div>
+                </div>
+
+                <div id="contenedorListaFavoritos"></div>
+
+                <div class="flex-gap" style="margin-top: 15px;">
+                    <button class="btn-calc" style="background: #b45309;" onclick="generarCartelesDeLista(productosFavoritos)">
+                        ⚡ Generar Carteles de TODOS los Favoritos
+                    </button>
+                    <button class="btn-print" onclick="imprimirPC()">🖨 Imprimir (PC)</button>
+                    <button class="btn-manual" style="background: #16a34a;" onclick="descargarPDF()">📥 Descargar PDF</button>
                 </div>
             </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <label style="margin: 0;">Productos seleccionados hoy (<span id="cantProductos">0</span>):</label>
-            <button class="btn-danger" style="padding: 6px 12px; font-size: 0.85rem;" onclick="vaciarListaCompleta()">🗑 Vaciar Lista</button>
-        </div>
-        <div class="scanned-list" id="listaEscaneados"></div>
-
-        <div class="flex-gap" style="margin-top: 20px;">
-            <button class="btn-calc" onclick="generarTodasLasOfertas()">⚡ Generar Carteles</button>
-            <button class="btn-print" onclick="imprimirPC()">🖨 Imprimir (PC)</button>
-            <button class="btn-manual" style="background: #16a34a;" onclick="descargarPDF()">📥 Descargar PDF (Móvil / PC)</button>
-        </div>
-
         <div class="preview-grid" id="previewGrid"></div>
+    </div>
+
+    <!-- ================= MODAL DE CARGA EN PC ================= -->
+    <div id="modalCargaPC" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <span class="step-pill" id="pcModalProgreso">Producto 1 de X</span>
+            <h2 id="pcModalNombreProd" style="color: #001a72; font-size: 1.2rem; margin-top: 6px;">Cargando...</h2>
+            <p id="pcModalEan" style="color: #64748b; font-size: 0.85rem; margin-bottom: 10px;">EAN: -----</p>
+
+            <div class="barcode-box" id="pcModalBarcodeContainer">
+                <img id="pcModalBarcodeImg" src="" alt="Código de barra">
+            </div>
+
+            <!-- CONTROLES ADICIONALES DE CARGA -->
+            <div class="modal-config-grid">
+                <div>
+                    <label style="font-size: 0.75rem;">Beneficio:</label>
+                    <label class="checkbox-label" style="font-size: 0.8rem; margin-top: 4px;">
+                        <input type="checkbox" id="pcModalCheckMiCarrefour">
+                        Mi Carrefour
+                    </label>
+                </div>
+
+                <div>
+                    <label style="font-size: 0.75rem;">Promoción 2do:</label>
+                    <select id="pcModalSelectPromo" style="font-size: 0.8rem; padding: 4px;">
+                        <option value="ninguna">Sin Promo</option>
+                        <option value="50">2do al 50%</option>
+                        <option value="70">2do al 70%</option>
+                        <option value="80">2do al 80%</option>
+                        <option value="2x1">2x1</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-size: 0.75rem;">Cant. Copias:</label>
+                    <input type="number" id="pcModalInputCopias" min="1" max="20" value="1" style="font-size: 0.85rem; padding: 4px; text-align: center;">
+                </div>
+            </div>
+
+            <div id="pcContenedorInputPrecio" style="margin-bottom: 15px; background: #f1f5f9; padding: 12px; border-radius: 8px;">
+                <label style="margin-bottom: 6px;">Ingresá el precio actual ($):</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="number" id="pcInputPrecio" step="0.01" style="font-size: 1.2rem; text-align: center; font-weight: bold;" onkeydown="siEsEnterAceptarPC(event)">
+                    <button class="btn-manual" style="background: #16a34a; padding: 10px 20px;" onclick="guardarYAvanzarPC()">Aceptar</button>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; gap: 8px; margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+                <button id="btnAnteriorPC" class="btn-manual" style="background: #64748b; font-size: 0.85rem; padding: 8px 12px;" onclick="anteriorProductoPC()">⬅️ Anterior</button>
+                <button class="btn-danger" style="font-size: 0.85rem; padding: 8px 12px;" onclick="cerrarModalCargaPC()">🚪 Finalizar Carga</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -267,9 +534,16 @@
         const URL_DESCARGAR_APP = "https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/DescargarApp.jpg";
 
         let catalogoProductos = {}; 
+        let listaCatalogoArreglo = [];
         let productosAEscanear = []; 
+        let productosFavoritos = obtenerFavoritos();
         let html5QrcodeScanner = null;
         let escanerActivo = false;
+
+        let pcModo = 'individual'; // 'individual' o 'masivo'
+        let productoActualPC = null;
+        let pcIndiceActual = 0;
+        let seccionActiva = 'escaneo'; // 'escaneo', 'modoPC', o 'favoritos'
 
         function formatearPrecio(valor) {
             return Math.round(valor).toString();
@@ -278,10 +552,49 @@
         window.addEventListener('DOMContentLoaded', () => {
             cargarCatalogoDesdeURL();
             recuperarListaGuardada();
+            renderizarFavoritosUI();
+
+            // Cerrar autocompletados si se hace clic afuera
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-container')) {
+                    const busqueda = document.getElementById('listaResultadosBusqueda');
+                    const busquedaPC = document.getElementById('listaResultadosBusquedaPC');
+                    if (busqueda) busqueda.style.display = 'none';
+                    if (busquedaPC) busquedaPC.style.display = 'none';
+                }
+            });
         });
 
+        function mostrarSeccion(seccion) {
+            seccionActiva = seccion; // Guarda la sección activa actual
+            const secEscaneo = document.getElementById('seccionEscaneo');
+            const secModoPC = document.getElementById('seccionModoPC');
+            const secFavoritos = document.getElementById('seccionFavoritos');
+
+            secEscaneo.style.display = 'none';
+            secModoPC.style.display = 'none';
+            secFavoritos.style.display = 'none';
+
+            if (seccion === 'favoritos') {
+                secFavoritos.style.display = 'block';
+                renderizarFavoritosUI();
+            } else if (seccion === 'modoPC') {
+                secModoPC.style.display = 'block';
+                actualizarListaUI();
+            } else {
+                secEscaneo.style.display = 'block';
+                actualizarListaUI();
+            }
+        }
+
         function guardarListaEnStorage() {
-            localStorage.setItem('productosAEscanear', JSON.stringify(productosAEscanear));
+            try {
+                localStorage.setItem('productosAEscanear', JSON.stringify(productosAEscanear));
+            } catch (e) {
+                if (e.name === 'QuotaExceededError' || e.code === 22) {
+                    alert('Se ha alcanzado el límite de almacenamiento local.');
+                }
+            }
         }
 
         function recuperarListaGuardada() {
@@ -308,6 +621,7 @@
         async function cargarCatalogoDesdeURL() {
             const statusDiv = document.getElementById('statusCatalogo');
             const selectCatalogo = document.getElementById('selectCatalogo');
+            const selectCatalogoPC = document.getElementById('selectCatalogoPC');
 
             try {
                 const respuesta = await fetch(URL_CSV_CATALOGO);
@@ -316,8 +630,7 @@
                 const text = await respuesta.text();
                 const lineas = text.split('\n');
                 catalogoProductos = {};
-                
-                let listaProcesada = [];
+                listaCatalogoArreglo = [];
 
                 lineas.forEach((linea, idx) => {
                     if (idx === 0 || !linea.trim()) return; 
@@ -327,50 +640,84 @@
                         const ean = cols[0];
                         const nombreProducto = cols[1] || "PRODUCTO";
 
-                        catalogoProductos[ean] = {
+                        const itemObj = {
                             ean: ean,
                             producto: nombreProducto,
                             fotoUrl: cols[4] || `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/${ean}.webp`
                         };
 
-                        listaProcesada.push({
-                            ean: ean,
-                            producto: nombreProducto
-                        });
+                        catalogoProductos[ean] = itemObj;
+                        listaCatalogoArreglo.push(itemObj);
                     }
                 });
 
-                listaProcesada.sort((a, b) => a.producto.localeCompare(b.producto, 'es', { sensitivity: 'base' }));
+                listaCatalogoArreglo.sort((a, b) => a.producto.localeCompare(b.producto, 'es', { sensitivity: 'base' }));
 
-                const fragmento = document.createDocumentFragment();
+                const fragmento1 = document.createDocumentFragment();
+                const fragmento2 = document.createDocumentFragment();
 
-                const opcInicial = document.createElement('option');
-                opcInicial.value = "";
-                opcInicial.textContent = "-- Buscar / Elegir producto de la lista --";
-                fragmento.appendChild(opcInicial);
+                const opc1 = document.createElement('option'); opc1.value = ""; opc1.textContent = "-- Buscar / Elegir producto de la lista --";
+                const opc2 = document.createElement('option'); opc2.value = ""; opc2.textContent = "-- Buscar / Elegir producto de la lista --";
 
-                listaProcesada.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.ean;
-                    option.textContent = `${item.producto} (${item.ean})`;
-                    fragmento.appendChild(option);
+                fragmento1.appendChild(opc1);
+                fragmento2.appendChild(opc2);
+
+                listaCatalogoArreglo.forEach(item => {
+                    const opt1 = document.createElement('option'); opt1.value = item.ean; opt1.textContent = `${item.producto} (${item.ean})`;
+                    const opt2 = document.createElement('option'); opt2.value = item.ean; opt2.textContent = `${item.producto} (${item.ean})`;
+                    fragmento1.appendChild(opt1);
+                    fragmento2.appendChild(opt2);
                 });
 
-                selectCatalogo.innerHTML = '';
-                selectCatalogo.appendChild(fragmento);
+                selectCatalogo.innerHTML = ''; selectCatalogo.appendChild(fragmento1);
+                selectCatalogoPC.innerHTML = ''; selectCatalogoPC.appendChild(fragmento2);
 
-                statusDiv.innerHTML = `<span class="status-badge">✓ Catálogo online listo (${listaProcesada.length} productos)</span>`;
+                statusDiv.innerHTML = `<span class="status-badge">✓ Catálogo online listo (${listaCatalogoArreglo.length} productos)</span>`;
             } catch (error) {
                 statusDiv.innerHTML = `<span style="color:red; font-size:0.85rem;">⚠️ Error al conectar con GitHub.</span>`;
             }
         }
 
-        function seleccionarDesdeDesplegable() {
-            const select = document.getElementById('selectCatalogo');
+        function filtrarProductosPorTexto(query, idContenedorResultados) {
+            const contenedorRes = document.getElementById(idContenedorResultados);
+            if (!query || query.trim().length < 2) {
+                contenedorRes.style.display = 'none';
+                return;
+            }
+
+            const termino = query.toLowerCase().trim();
+            const filtrados = listaCatalogoArreglo.filter(p => p.producto.toLowerCase().includes(termino)).slice(0, 10);
+
+            if (filtrados.length === 0) {
+                contenedorRes.style.display = 'none';
+                return;
+            }
+
+            const fragmentoResultados = document.createDocumentFragment();
+            filtrados.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'search-item';
+                div.innerHTML = `<strong>${p.producto}</strong> <span style="color:#666; font-size:0.8rem;">(${p.ean})</span>`;
+                div.onclick = () => {
+                    contenedorRes.style.display = 'none';
+                    if (document.getElementById('inputBuscadorTexto')) document.getElementById('inputBuscadorTexto').value = '';
+                    if (document.getElementById('inputBuscadorTextoPC')) document.getElementById('inputBuscadorTextoPC').value = '';
+                    abrirModalCargaIndividualPC(p.ean);
+                };
+                fragmentoResultados.appendChild(div);
+            });
+
+            contenedorRes.innerHTML = '';
+            contenedorRes.appendChild(fragmentoResultados);
+            contenedorRes.style.display = 'block';
+        }
+
+        function seleccionarDesdeDesplegable(idSelect) {
+            const select = document.getElementById(idSelect);
             const eanSeleccionado = select.value;
 
             if (eanSeleccionado) {
-                procesarEAN(eanSeleccionado);
+                abrirModalCargaIndividualPC(eanSeleccionado);
                 select.value = "";
             }
         }
@@ -406,75 +753,196 @@
 
         function onScanSuccess(decodedText) {
             detenerCamara();
-            procesarEAN(decodedText.trim());
+            abrirModalCargaIndividualPC(decodedText.trim());
         }
 
         function buscarEanManual() {
             const ean = document.getElementById('manualEanInput').value.trim();
             if (ean) {
-                procesarEAN(ean);
+                abrirModalCargaIndividualPC(ean);
                 document.getElementById('manualEanInput').value = '';
             }
         }
 
-        function procesarEAN(ean) {
-            let productoBase = catalogoProductos[ean];
+        function esProductoFavorito(ean) {
+            return productosFavoritos.some(f => f.ean === ean);
+        }
 
-            if (!productoBase) {
-                const nombreManual = prompt(`El EAN ${ean} no existe en el catálogo.\n\nIngresá el nombre:`);
-                if (!nombreManual) return;
+        function renderizarFilaItem(p, idx, esPC = false) {
+            if (!p.copias) p.copias = 1;
+            const esFav = esProductoFavorito(p.ean);
 
-                productoBase = {
-                    ean: ean,
-                    producto: nombreManual.toUpperCase(),
-                    fotoUrl: `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/${ean}.webp`
-                };
-            }
+            return `
+                <div class="item-row">
+                    <div class="item-info">
+                        <strong>${p.producto}</strong>
+                        <span>EAN: ${p.ean}</span>
+                    </div>
 
-            const precio = prompt(`Producto: ${productoBase.producto}\n\nIngresá el Precio Regular actual ($):`, "1000");
-            if (precio === null) return;
+                    <label class="checkbox-label">
+                        <input type="checkbox" ${p.esMiCarrefour ? 'checked' : ''} 
+                               onchange="productosAEscanear[${idx}].esMiCarrefour = this.checked; guardarListaEnStorage();">
+                        Mi Carrefour
+                    </label>
 
-            productosAEscanear.push({
-                ...productoBase,
-                precioRegular: parseFloat(precio.replace(',', '.')) || 0,
-                esMiCarrefour: false,
-                promocionSegunda: 'ninguna'
-            });
+                    <div>
+                        <select class="select-promo-item" onchange="productosAEscanear[${idx}].promocionSegunda = this.value; guardarListaEnStorage();">
+                            <option value="ninguna" ${p.promocionSegunda === 'ninguna' ? 'selected' : ''}>Sin Promo 2do</option>
+                            <option value="50" ${p.promocionSegunda === '50' ? 'selected' : ''}>2do al 50%</option>
+                            <option value="70" ${p.promocionSegunda === '70' ? 'selected' : ''}>2do al 70%</option>
+                            <option value="80" ${p.promocionSegunda === '80' ? 'selected' : ''}>2do al 80%</option>
+                            <option value="2x1" ${p.promocionSegunda === '2x1' ? 'selected' : ''}>2x1</option>
+                        </select>
+                    </div>
 
-            guardarListaEnStorage();
-            actualizarListaUI();
+                    <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 4px;">
+                        $: 
+                        <input type="number" step="0.01" class="item-price-input" value="${p.precioRegular}" 
+                               onchange="productosAEscanear[${idx}].precioRegular = parseFloat(this.value) || 0; guardarListaEnStorage();">
+                    </label>
+
+                    <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 4px;">
+                        Copias: 
+                        <input type="number" min="1" max="20" class="item-copias-input" value="${p.copias}" 
+                               onchange="productosAEscanear[${idx}].copias = parseInt(this.value) || 1; guardarListaEnStorage();">
+                    </label>
+
+                    <button type="button" class="${esFav ? 'btn-fav-active' : 'btn-fav'}" 
+                            onclick="${esFav ? '' : `guardarComoFavorito(${idx})`}">
+                        ${esFav ? '★ En Favoritos' : '☆ Favorito'}
+                    </button>
+
+                    <button class="btn-danger" onclick="eliminarProducto(${idx})">✕</button>
+                </div>
+            `;
         }
 
         function actualizarListaUI() {
-            const contenedor = document.getElementById('listaEscaneados');
-            document.getElementById('cantProductos').innerText = productosAEscanear.length;
-            contenedor.innerHTML = '';
+            const contenedor1 = document.getElementById('listaEscaneados');
+            const contenedor2 = document.getElementById('listaEscaneadosPC');
 
+            document.getElementById('cantProductos').innerText = productosAEscanear.length;
+            document.getElementById('cantProductosPC').innerText = productosAEscanear.length;
+
+            let html = '';
             productosAEscanear.forEach((p, idx) => {
+                html += renderizarFilaItem(p, idx);
+            });
+
+            if (contenedor1) contenedor1.innerHTML = html;
+            if (contenedor2) contenedor2.innerHTML = html;
+        }
+
+        function guardarComoFavorito(index) {
+            const prod = productosAEscanear[index];
+            if (esProductoFavorito(prod.ean)) return;
+
+            productosFavoritos.push({ ...prod });
+            if (guardarFavoritosStorage()) {
+                actualizarListaUI();
+                renderizarFavoritosUI();
+            } else {
+                productosFavoritos.pop();
+            }
+        }
+
+        function renderizarFavoritosUI() {
+            const contenedor = document.getElementById('contenedorListaFavoritos');
+            if (!contenedor) return;
+
+            if (productosFavoritos.length === 0) {
+                contenedor.innerHTML = '<p style="color: #666; font-style: italic;">No tienes productos guardados en favoritos aún.</p>';
+                return;
+            }
+
+            contenedor.innerHTML = '';
+            productosFavoritos.forEach((p, idx) => {
+                if (!p.copias) p.copias = 1;
+
                 contenedor.innerHTML += `
-                    <div class="item-row">
+                    <div class="item-row" style="background: #ffffff; margin-bottom: 8px;">
                         <div class="item-info">
                             <strong>${p.producto}</strong>
                             <span>EAN: ${p.ean}</span>
                         </div>
+
                         <label class="checkbox-label">
                             <input type="checkbox" ${p.esMiCarrefour ? 'checked' : ''} 
-                                   onchange="productosAEscanear[${idx}].esMiCarrefour = this.checked; guardarListaEnStorage();">
+                                   onchange="productosFavoritos[${idx}].esMiCarrefour = this.checked; guardarFavoritosStorage();">
                             Mi Carrefour
                         </label>
-                        <div>
-                            <select class="select-promo-item" onchange="productosAEscanear[${idx}].promocionSegunda = this.value; guardarListaEnStorage();">
-                                <option value="ninguna" ${p.promocionSegunda === 'ninguna' ? 'selected' : ''}>Sin Promo 2do</option>
-                                <option value="50" ${p.promocionSegunda === '50' ? 'selected' : ''}>2do al 50%</option>
-                                <option value="70" ${p.promocionSegunda === '70' ? 'selected' : ''}>2do al 70%</option>
-                            </select>
-                        </div>
-                        <input type="number" step="0.01" class="item-price-input" value="${p.precioRegular}" 
-                               onchange="productosAEscanear[${idx}].precioRegular = parseFloat(this.value) || 0; guardarListaEnStorage();">
-                        <button class="btn-danger" onclick="eliminarProducto(${idx})">✕</button>
+
+                        <select class="select-promo-item" onchange="productosFavoritos[${idx}].promocionSegunda = this.value; guardarFavoritosStorage();">
+                            <option value="ninguna" ${p.promocionSegunda === 'ninguna' ? 'selected' : ''}>Sin Promo 2do</option>
+                            <option value="50" ${p.promocionSegunda === '50' ? 'selected' : ''}>2do al 50%</option>
+                            <option value="70" ${p.promocionSegunda === '70' ? 'selected' : ''}>2do al 70%</option>
+                            <option value="80" ${p.promocionSegunda === '80' ? 'selected' : ''}>2do al 80%</option>
+                            <option value="2x1" ${p.promocionSegunda === '2x1' ? 'selected' : ''}>2x1</option>
+                        </select>
+
+                        <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+                            Precio $: 
+                            <input type="number" step="0.01" class="item-price-input" 
+                                   value="${p.precioRegular}" 
+                                   onchange="actualizarPrecioFavorito(${idx}, this.value)">
+                        </label>
+
+                        <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+                            Copias: 
+                            <input type="number" min="1" max="20" class="item-copias-input" 
+                                   value="${p.copias}" 
+                                   onchange="actualizarCopiasFavorito(${idx}, this.value)">
+                        </label>
+
+                        <button class="btn-danger" onclick="eliminarFavorito(${idx})">✕</button>
                     </div>
                 `;
             });
+        }
+
+        function guardarFavoritos(favoritos) {
+            try {
+                localStorage.setItem('productosFavoritos', JSON.stringify(favoritos));
+                return true;
+            } catch (e) {
+                if (e.name === 'QuotaExceededError' || e.code === 22) {
+                    alert('Se ha alcanzado el límite de almacenamiento local. No se pueden agregar más favoritos.');
+                } else {
+                    console.error('Error al guardar en favoritos:', e);
+                }
+                return false;
+            }
+        }
+
+        function guardarFavoritosStorage() {
+            return guardarFavoritos(productosFavoritos);
+        }
+
+        function obtenerFavoritos() {
+            try {
+                const data = localStorage.getItem('productosFavoritos');
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                console.error('Error al recuperar favoritos:', e);
+                return [];
+            }
+        }
+
+        function actualizarPrecioFavorito(index, nuevoPrecio) {
+            productosFavoritos[index].precioRegular = parseFloat(nuevoPrecio) || 0;
+            guardarFavoritosStorage();
+        }
+
+        function actualizarCopiasFavorito(index, nuevasCopias) {
+            productosFavoritos[index].copias = parseInt(nuevasCopias) || 1;
+            guardarFavoritosStorage();
+        }
+
+        function eliminarFavorito(index) {
+            productosFavoritos.splice(index, 1);
+            guardarFavoritosStorage();
+            renderizarFavoritosUI();
+            actualizarListaUI();
         }
 
         function eliminarProducto(idx) {
@@ -483,6 +951,159 @@
             actualizarListaUI();
         }
 
+        /* ================= MODAL DE CARGA PC (INDIVIDUAL / MASIVO) ================= */
+        function abrirModalCargaIndividualPC(ean) {
+            pcModo = 'individual';
+            document.getElementById('btnAnteriorPC').style.display = 'none';
+
+            // Muestra el código de barras solo si se abre desde la versión PC + App Carrefour
+            const barcodeContainer = document.getElementById('pcModalBarcodeContainer');
+            if (barcodeContainer) {
+                if (seccionActiva === 'modoPC') {
+                    barcodeContainer.style.display = 'flex';
+                } else {
+                    barcodeContainer.style.display = 'none';
+                }
+            }
+
+            let prodBase = catalogoProductos[ean];
+            if (!prodBase) {
+                const nombreManual = prompt(`El EAN ${ean} no existe en el catálogo.\n\nIngresá el nombre:`);
+                if (!nombreManual) return;
+
+                prodBase = {
+                    ean: ean,
+                    producto: nombreManual.toUpperCase(),
+                    fotoUrl: `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/${ean}.webp`
+                };
+            }
+
+            productoActualPC = {
+                ...prodBase,
+                precioRegular: 0,
+                esMiCarrefour: false,
+                promocionSegunda: 'ninguna',
+                copias: 1
+            };
+
+            document.getElementById('pcModalProgreso').innerText = "Añadir Producto a la Lista";
+            document.getElementById('pcModalNombreProd').innerText = productoActualPC.producto;
+            document.getElementById('pcModalEan').innerText = `EAN: ${productoActualPC.ean}`;
+            document.getElementById('pcModalBarcodeImg').src = `https://barcodeapi.org/api/128/${encodeURIComponent(productoActualPC.ean)}`;
+
+            document.getElementById('pcModalCheckMiCarrefour').checked = false;
+            document.getElementById('pcModalSelectPromo').value = 'ninguna';
+            document.getElementById('pcModalInputCopias').value = 1;
+            document.getElementById('pcInputPrecio').value = '';
+
+            document.getElementById('modalCargaPC').style.display = 'flex';
+            
+            setTimeout(() => {
+                const inp = document.getElementById('pcInputPrecio');
+                if (inp) inp.focus();
+            }, 100);
+        }
+
+        function iniciarCargaPreciosPC() {
+            if (!productosFavoritos || productosFavoritos.length === 0) {
+                alert("No tenés productos guardados en favoritos para cargar precios.");
+                return;
+            }
+            pcModo = 'masivo';
+            
+            const barcodeContainer = document.getElementById('pcModalBarcodeContainer');
+            if (barcodeContainer) {
+                barcodeContainer.style.display = 'flex';
+            }
+
+            pcIndiceActual = 0;
+            document.getElementById('btnAnteriorPC').style.display = 'inline-block';
+            document.getElementById('modalCargaPC').style.display = 'flex';
+            cargarProductoModalMasivoPC();
+        }
+
+        function cargarProductoModalMasivoPC() {
+            if (pcIndiceActual >= productosFavoritos.length) {
+                alert("🎉 ¡Has completado la carga de todos los productos favoritos!");
+                cerrarModalCargaPC();
+                return;
+            }
+
+            const p = productosFavoritos[pcIndiceActual];
+            document.getElementById('pcModalProgreso').innerText = `Producto ${pcIndiceActual + 1} de ${productosFavoritos.length}`;
+            document.getElementById('pcModalNombreProd').innerText = p.producto;
+            document.getElementById('pcModalEan').innerText = `EAN: ${p.ean}`;
+            document.getElementById('pcModalBarcodeImg').src = `https://barcodeapi.org/api/128/${encodeURIComponent(p.ean)}`;
+
+            document.getElementById('pcModalCheckMiCarrefour').checked = !!p.esMiCarrefour;
+            document.getElementById('pcModalSelectPromo').value = p.promocionSegunda || 'ninguna';
+            document.getElementById('pcModalInputCopias').value = p.copias || 1;
+            document.getElementById('pcInputPrecio').value = p.precioRegular !== undefined ? p.precioRegular : '';
+
+            setTimeout(() => {
+                const inp = document.getElementById('pcInputPrecio');
+                if (inp) {
+                    inp.focus();
+                    inp.select();
+                }
+            }, 100);
+        }
+
+        function siEsEnterAceptarPC(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                guardarYAvanzarPC();
+            }
+        }
+
+        function guardarYAvanzarPC() {
+            const precioVal = parseFloat(document.getElementById('pcInputPrecio').value) || 0;
+            const esMiCarrefourVal = document.getElementById('pcModalCheckMiCarrefour').checked;
+            const promoVal = document.getElementById('pcModalSelectPromo').value;
+            const copiasVal = parseInt(document.getElementById('pcModalInputCopias').value) || 1;
+
+            if (pcModo === 'individual') {
+                productoActualPC.precioRegular = precioVal;
+                productoActualPC.esMiCarrefour = esMiCarrefourVal;
+                productoActualPC.promocionSegunda = promoVal;
+                productoActualPC.copias = copiasVal;
+
+                productosAEscanear.push(productoActualPC);
+                guardarListaEnStorage();
+                actualizarListaUI();
+
+                cerrarModalCargaPC();
+            } else {
+                productosFavoritos[pcIndiceActual].precioRegular = precioVal;
+                productosFavoritos[pcIndiceActual].esMiCarrefour = esMiCarrefourVal;
+                productosFavoritos[pcIndiceActual].promocionSegunda = promoVal;
+                productosFavoritos[pcIndiceActual].copias = copiasVal;
+
+                guardarFavoritosStorage();
+                pcIndiceActual++;
+                cargarProductoModalMasivoPC();
+            }
+        }
+
+        function anteriorProductoPC() {
+            if (pcModo === 'masivo') {
+                if (pcIndiceActual > 0) {
+                    pcIndiceActual--;
+                    cargarProductoModalMasivoPC();
+                } else {
+                    alert("Estás en el primer producto de la lista.");
+                }
+            }
+        }
+
+        function cerrarModalCargaPC() {
+            document.getElementById('modalCargaPC').style.display = 'none';
+            if (pcModo === 'masivo') {
+                renderizarFavoritosUI();
+            }
+        }
+
+        /* ================= DIBUJO DE CARTELES CANVAS ================= */
         function cargarImagen(src) {
             return new Promise((resolve) => {
                 const img = new Image();
@@ -493,7 +1114,6 @@
             });
         }
 
-        // --- DIBUJAR CUADRO PRECIO CON PARÁMETRO PARA FINDE O VIERNES ---
         function dibujarCuadroPrecio(ctx, x, y, ancho, alto, precioFinalNum, pData, imgMiCarrefour, esJueves = false, esFindeOViernes = false) {
             const textoPrecio = "$" + formatearPrecio(precioFinalNum);
             const esMiCarrefour = pData.esMiCarrefour;
@@ -556,7 +1176,6 @@
                     ctx.fillText(textoPrecio, x + (ancho / 2), y + (alto / 2) + (fontSize / 3));
                 }
 
-                // Si es viernes o finde, el borde es #B80F56; de lo contrario celeste #00a3e0
                 ctx.strokeStyle = esFindeOViernes ? "#B80F56" : "#00a3e0";
                 ctx.lineWidth = 3;
                 ctx.strokeRect(x, y, ancho, alto);   
@@ -565,12 +1184,10 @@
 
         function calcularPrecioFinal(pData, pctDia) {
             let base = pData.precioRegular;
-            
-            if (pData.promocionSegunda === '50') {
-                base = base * 0.75; 
-            } else if (pData.promocionSegunda === '70') {
-                base = base * 0.65; 
-            }
+            if (pData.promocionSegunda === '50') base = base * 0.75; 
+            else if (pData.promocionSegunda === '70') base = base * 0.65; 
+            else if (pData.promocionSegunda === '80') base = base * 0.60;
+            else if (pData.promocionSegunda === '2x1') base = base * 0.50;
 
             return base * (1 - pctDia / 100);
         }
@@ -590,219 +1207,178 @@
                 }
             }
         }
-       
+
         async function crearCartelMartes(pData) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 800; 
-    canvas.height = 980;
-    const ctx = canvas.getContext('2d');
-    
-    // Porcentaje configurado para Martes
-    const pctDescuento = 20;
+            const canvas = document.createElement('canvas');
+            canvas.width = 800; canvas.height = 980;
+            const ctx = canvas.getContext('2d');
+            const pctDescuento = 20;
 
-    const [
-        imgProducto, 
-        imgCarrefour, 
-        imgMiCarrefour,
-        imgExclusivo,
-        imgDescargarApp,
-        imgBannerTarjetaCredito // Carga agregada para evitar ReferenceError
-    ] = await Promise.all([
-        cargarImagen(pData.fotoUrl),
-        cargarImagen(URL_CARREFOUR_LOGO),
-        cargarImagen(URL_MI_CARREFOUR_LOGO),
-        cargarImagen(URL_EXCLUSIVO_CUENTA_DIGITAL),
-        cargarImagen(URL_DESCARGAR_APP),
-        cargarImagen(URL_BANNER_TARJETA_CREDITO) // Asegúrate de tener definida esta constante
-    ]);
+            const [imgProducto, imgCarrefour, imgMiCarrefour, imgExclusivo, imgDescargarApp, imgBannerTarjetaCredito] = await Promise.all([
+                cargarImagen(pData.fotoUrl),
+                cargarImagen(URL_CARREFOUR_LOGO),
+                cargarImagen(URL_MI_CARREFOUR_LOGO),
+                cargarImagen(URL_EXCLUSIVO_CUENTA_DIGITAL),
+                cargarImagen(URL_DESCARGAR_APP),
+                cargarImagen(URL_BANNER_TARJETA_CREDITO)
+            ]);
 
-    // Fondo principal
-    const gradiente = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradiente.addColorStop(0.0, "#2B0038");
-    gradiente.addColorStop(0.35, "#800B53");
-    gradiente.addColorStop(0.70, "#B80F56");
-    gradiente.addColorStop(1.0, "#4A0033");
+            const gradiente = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradiente.addColorStop(0.0, "#2B0038");
+            gradiente.addColorStop(0.35, "#800B53");
+            gradiente.addColorStop(0.70, "#B80F56");
+            gradiente.addColorStop(1.0, "#4A0033");
 
-    ctx.fillStyle = gradiente;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = gradiente;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Banner Superior
-    const xBanner = 50;
-    const yBanner = 20;
-    const wBanner = 700;
-    const hBanner = 145;
-    const rBanner = 18;
+            const xBanner = 50, yBanner = 20, wBanner = 700, hBanner = 145;
 
-    const fondoGrad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+            const fondoGrad = ctx.createLinearGradient(0, 0, canvas.width, 0);
             fondoGrad.addColorStop(0, '#3b2382');
             fondoGrad.addColorStop(0.5, '#20639b');
             fondoGrad.addColorStop(1, '#34d1b8');
             ctx.fillStyle = fondoGrad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2;
+            ctx.stroke();
 
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 2;
-    ctx.stroke();
+            const wPill = 295, hPill = 34, xPill = xBanner + wBanner - wPill - 25, yPill = yBanner + 12;
 
-    // Píldora "Todos los Martes"
-    const wPill = 295;
-    const hPill = 34;
-    const xPill = xBanner + wBanner - wPill - 25;
-    const yPill = yBanner + 12;
+            ctx.fillStyle = "#FFFFFF";
+            ctx.beginPath();
+            ctx.roundRect(xPill, yPill, wPill, hPill, 17);
+            ctx.fill();
 
-    ctx.fillStyle = "#FFFFFF";
-    ctx.beginPath();
-    ctx.roundRect(xPill, yPill, wPill, hPill, 17);
-    ctx.fill();
+            ctx.fillStyle = "#20639b";
+            ctx.font = "bold 21px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("Todos los Martes", xPill + (wPill / 2), yPill + (hPill / 2));
 
-    ctx.fillStyle = "#20639b";
-    ctx.font = "bold 21px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("Todos los Martes", xPill + (wPill / 2), yPill + (hPill / 2));
+            ctx.fillStyle = "#ffffff";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "alphabetic";
 
-    // Texto de Descuento (20%)
-    ctx.fillStyle = "#ffffff";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
+            const textoPct = pctDescuento.toString();
+            ctx.font = "italic 900 115px 'Impact', 'Arial Black', sans-serif";
+            const xDiez = xBanner + 20, yDiez = yBanner + 122;
+            ctx.fillText(textoPct, xDiez, yDiez);
 
-    const textoPct = pctDescuento.toString(); // "20"
-    ctx.font = "italic 900 115px 'Impact', 'Arial Black', sans-serif";
-    const xDiez = xBanner + 20;
-    const yDiez = yBanner + 122;
-    ctx.fillText(textoPct, xDiez, yDiez);
+            const anchoTextoPct = ctx.measureText(textoPct).width;
+            const xSimboloPct = xDiez + anchoTextoPct + 10;
 
-    // Ajuste dinámico de posición según el ancho real del texto "20"
-    const anchoTextoPct = ctx.measureText(textoPct).width;
-    const xSimboloPct = xDiez + anchoTextoPct + 10;
+            ctx.font = "italic 900 68px 'Impact', 'Arial Black', sans-serif";
+            ctx.fillText("%", xSimboloPct, yBanner + 100);
 
-    ctx.font = "italic 900 68px 'Impact', 'Arial Black', sans-serif";
-    ctx.fillText("%", xSimboloPct, yBanner + 100);
+            ctx.font = "bold 20px sans-serif";
+            ctx.fillText("de descuento", xSimboloPct, yBanner + 120);
 
-    ctx.font = "bold 20px sans-serif";
-    ctx.fillText("de descuento", xSimboloPct, yBanner + 120);
+            ctx.font = "bold 30px sans-serif";
+            ctx.fillText("EN EL ACTO,", xBanner + 375, yBanner + 82);
+            ctx.font = "900 32px sans-serif";
+            ctx.fillText("SIN TOPE! (*)", xBanner + 375, yBanner + 118);
 
-    ctx.font = "bold 30px sans-serif";
-    ctx.fillText("EN EL ACTO,", xBanner + 375, yBanner + 82);
-    ctx.font = "900 32px sans-serif";
-    ctx.fillText("SIN TOPE! (*)", xBanner + 375, yBanner + 118);
+            ctx.restore();
 
-    ctx.restore();
+            ctx.fillStyle = "#ffffff";
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "#00a3e0";
+            ctx.beginPath();
+            ctx.roundRect(50, 190, 700, 630, 25);
+            ctx.fill(); ctx.stroke();
 
-    // Cuadro Blanco Central
-    ctx.fillStyle = "#ffffff";
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = "#00a3e0";
-    ctx.beginPath();
-    ctx.roundRect(50, 190, 700, 630, 25);
-    ctx.fill(); 
-    ctx.stroke();
+            if (imgCarrefour) {
+                const w = 110, h = (imgCarrefour.height / imgCarrefour.width) * w;
+                ctx.drawImage(imgCarrefour, 610, 210, w, h);
+            }
 
-    if (imgCarrefour) {
-        const w = 110, h = (imgCarrefour.height / imgCarrefour.width) * w;
-        ctx.drawImage(imgCarrefour, 610, 210, w, h);
-    }
+            if (imgProducto) {
+                const imgMaxW = 440, imgMaxH = 290;
+                let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
+                let w = imgProducto.width * scale, h = imgProducto.height * scale;
+                ctx.drawImage(imgProducto, (canvas.width - w) / 2, 340 - (h / 2), w, h);
+            }
 
-    if (imgProducto) {
-        const imgMaxW = 440, imgMaxH = 290;
-        let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
-        let w = imgProducto.width * scale, h = imgProducto.height * scale;
-        ctx.drawImage(imgProducto, (canvas.width - w) / 2, 340 - (h / 2), w, h);
-    }
+            ctx.fillStyle = "#000000";
+            ctx.textAlign = "left";
+            ctx.font = "bold 24px sans-serif";
 
-    // Nombre del producto
-    ctx.fillStyle = "#000000";
-    ctx.textAlign = "left";
-    ctx.font = "bold 24px sans-serif";
-
-    const palabras = pData.producto.split(" ");
-    let linea = "", y = 570; 
-    for (let n = 0; n < palabras.length; n++) {
-        let testLinea = linea + palabras[n] + " ";
-        if (ctx.measureText(testLinea).width > 310 && n > 0) {
+            const palabras = pData.producto.split(" ");
+            let linea = "", y = 570; 
+            for (let n = 0; n < palabras.length; n++) {
+                let testLinea = linea + palabras[n] + " ";
+                if (ctx.measureText(testLinea).width > 310 && n > 0) {
+                    ctx.fillText(linea, 75, y);
+                    linea = palabras[n] + " "; y += 30;
+                } else { linea = testLinea; }
+            }
             ctx.fillText(linea, 75, y);
-            linea = palabras[n] + " "; 
-            y += 30;
-        } else { 
-            linea = testLinea; 
-        }
-    }
-    ctx.fillText(linea, 75, y);
 
-    // Precio e Información
-    const precioFinal = calcularPrecioFinal(pData, pctDescuento);
-    dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData, imgMiCarrefour);
+            const precioFinal = calcularPrecioFinal(pData, pctDescuento);
+            dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData, imgMiCarrefour);
 
-    ctx.fillStyle = "#000000";
-    ctx.font = "bold 20px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 575, 700);
+            ctx.fillStyle = "#000000";
+            ctx.font = "bold 20px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 575, 700);
 
-    const anchoPildora = 460;
-    const altoPildora = 45;
-    const xPildora = (canvas.width - anchoPildora) / 2;
-    const yPildora = 750;
-    const radioPildora = 22;
+            const anchoPildora = 460, altoPildora = 45, xPildora = (canvas.width - anchoPildora) / 2, yPildora = 750, radioPildora = 22;
 
-    ctx.save();
-    ctx.fillStyle = "#20639b";
-    ctx.beginPath();
-    ctx.roundRect(xPildora, yPildora, anchoPildora, altoPildora, radioPildora);
-    ctx.fill();
+            ctx.save();
+            ctx.fillStyle = "#20639b";
+            ctx.beginPath();
+            ctx.roundRect(xPildora, yPildora, anchoPildora, altoPildora, radioPildora);
+            ctx.fill();
 
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 22px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("¡Incluye Productos Carrefour!", canvas.width / 2, yPildora + (altoPildora / 2));
-    ctx.restore();
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 22px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("¡Incluye Productos Carrefour!", canvas.width / 2, yPildora + (altoPildora / 2));
+            ctx.restore();
 
-    await dibujarCucardaPromo(ctx, pData.promocionSegunda, 95, 250, 130);
+            await dibujarCucardaPromo(ctx, pData.promocionSegunda, 95, 250, 130);
 
-    ctx.fillStyle = "#000000";
-    ctx.font = "bold 18px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("NO INCLUYE ELECTRO NI CARNICERIA", canvas.width / 2, 810);
+            ctx.fillStyle = "#000000";
+            ctx.font = "bold 18px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("NO INCLUYE ELECTRO NI CARNICERIA", canvas.width / 2, 810);
 
-    ctx.fillStyle = "#FFFFFF";
+            ctx.fillStyle = "#FFFFFF";
             ctx.font = "bold 18px sans-serif";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText("(*)Ver legales en bancodeserviciosfinancieros.com.ar/legales", 390, 965);
 
-    // Banner de Tarjeta
-    if (imgBannerTarjetaCredito) {
-        const anchoBanner = 560;
-        const altoBanner = 100;
-        const xPosicion = (canvas.width - anchoBanner) / 2;
-        const yPosicion = 845;    
-        const radioBordes = 18;
+            if (imgBannerTarjetaCredito) {
+                const anchoBanner = 560, altoBanner = 100, xPosicion = (canvas.width - anchoBanner) / 2, yPosicion = 845, radioBordes = 18;
 
-        ctx.save();
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.roundRect(xPosicion, yPosicion, anchoBanner, altoBanner, radioBordes);
-        ctx.fill();
+                ctx.save();
+                ctx.fillStyle = "#ffffff";
+                ctx.beginPath();
+                ctx.roundRect(xPosicion, yPosicion, anchoBanner, altoBanner, radioBordes);
+                ctx.fill();
 
-        ctx.beginPath();
-        ctx.roundRect(xPosicion, yPosicion, anchoBanner, altoBanner, radioBordes);
-        ctx.clip();
+                ctx.beginPath();
+                ctx.roundRect(xPosicion, yPosicion, anchoBanner, altoBanner, radioBordes);
+                ctx.clip();
+                ctx.drawImage(imgBannerTarjetaCredito, xPosicion, yPosicion, anchoBanner, altoBanner);
 
-        ctx.drawImage(imgBannerTarjetaCredito, xPosicion, yPosicion, anchoBanner, altoBanner);
+                ctx.strokeStyle = "#ffffff";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.roundRect(xPosicion, yPosicion, anchoBanner, altoBanner, radioBordes);
+                ctx.stroke();
 
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.roundRect(xPosicion, yPosicion, anchoBanner, altoBanner, radioBordes);
-        ctx.stroke();
+                ctx.restore();
+            }
 
-        ctx.restore();
-    }
+            return canvas.toDataURL('image/png');
+        }
 
-    return canvas.toDataURL('image/png');
-}
-       
         async function crearCartelJueves(pData) {
             const canvas = document.createElement('canvas');
             canvas.width = 800; canvas.height = 980;
@@ -830,8 +1406,7 @@
             }
 
             ctx.fillStyle = "#ffffff";
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = "#00a3e0";
+            ctx.lineWidth = 4; ctx.strokeStyle = "#00a3e0";
             ctx.beginPath();
             ctx.roundRect(50, 190, 700, 630, 25);
             ctx.fill(); ctx.stroke();
@@ -870,7 +1445,7 @@
             ctx.font = "bold 20px sans-serif";
             ctx.textAlign = "center";
             ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 575, 700);
-            
+
             await dibujarCucardaPromo(ctx, pData.promocionSegunda, 90, 200, 155);
 
             ctx.fillStyle = "#001a72";
@@ -963,18 +1538,11 @@
 
         async function crearCartelViernes(pData) {
             const canvas = document.createElement('canvas');
-            canvas.width = 800; 
-            canvas.height = 980;
+            canvas.width = 800; canvas.height = 980;
             const ctx = canvas.getContext('2d');
             const pctDescuento = 15;
 
-            const [
-                imgProducto, 
-                imgCarrefour, 
-                imgMiCarrefour,
-                imgExclusivo,
-                imgDescargarApp
-            ] = await Promise.all([
+            const [imgProducto, imgCarrefour, imgMiCarrefour, imgExclusivo, imgDescargarApp] = await Promise.all([
                 cargarImagen(pData.fotoUrl),
                 cargarImagen(URL_CARREFOUR_LOGO),
                 cargarImagen(URL_MI_CARREFOUR_LOGO),
@@ -991,11 +1559,7 @@
             ctx.fillStyle = gradiente;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            const xBanner = 50;
-            const yBanner = 20;
-            const wBanner = 700;
-            const hBanner = 145;
-            const rBanner = 18;
+            const xBanner = 50, yBanner = 20, wBanner = 700, hBanner = 145, rBanner = 18;
 
             const gradienteBanner = ctx.createLinearGradient(xBanner, yBanner, xBanner + wBanner, yBanner);
             gradienteBanner.addColorStop(0.0, "#26489A");
@@ -1012,10 +1576,7 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            const wPill = 295;
-            const hPill = 34;
-            const xPill = xBanner + wBanner - wPill - 25;
-            const yPill = yBanner + 12;
+            const wPill = 295, hPill = 34, xPill = xBanner + wBanner - wPill - 25, yPill = yBanner + 12;
 
             ctx.fillStyle = "#ffffff";
             ctx.beginPath();
@@ -1032,13 +1593,13 @@
             ctx.textAlign = "left";
             ctx.textBaseline = "alphabetic";
 
+            const textoPctViernes = "15";
             ctx.font = "italic 900 115px 'Impact', 'Arial Black', sans-serif";
-            const xDiez = xBanner + 20;
-            const yDiez = yBanner + 122;
-            ctx.fillText("15", xDiez, yDiez);
+            const xDiez = xBanner + 20, yDiez = yBanner + 122;
+            ctx.fillText(textoPctViernes, xDiez, yDiez);
 
-            const anchoDiez = ctx.measureText("10").width;
-            const xSimboloPct = xDiez + anchoDiez + 10;
+            const anchoQuince = ctx.measureText(textoPctViernes).width;
+            const xSimboloPct = xDiez + anchoQuince + 10;
 
             ctx.font = "italic 900 68px 'Impact', 'Arial Black', sans-serif";
             ctx.fillText("%", xSimboloPct, yBanner + 100);
@@ -1054,12 +1615,10 @@
             ctx.restore();
 
             ctx.fillStyle = "#ffffff";
-            ctx.lineWidth = 4; 
-            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = 4; ctx.strokeStyle = "#000000";
             ctx.beginPath();
             ctx.roundRect(50, 190, 700, 610, 25);
-            ctx.fill(); 
-            ctx.stroke();
+            ctx.fill(); ctx.stroke();
 
             if (imgCarrefour) {
                 const w = 110, h = (imgCarrefour.height / imgCarrefour.width) * w;
@@ -1089,9 +1648,8 @@
             ctx.fillText(linea, 75, y);
 
             const precioFinal = calcularPrecioFinal(pData, pctDescuento);
-            // Pasar esFindeOViernes = true para activar el color #B80F56
             dibujarCuadroPrecio(ctx, 430, 535, 290, 125, precioFinal, pData, imgMiCarrefour, false, true);
-            
+
             await dibujarCucardaPromo(ctx, pData.promocionSegunda, 90, 200, 155);
 
             ctx.fillStyle = "#000000";
@@ -1099,11 +1657,7 @@
             ctx.textAlign = "center";
             ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 575, 700);
 
-            const anchoPildora = 590;
-            const altoPildora = 45;
-            const xPildora = (canvas.width - anchoPildora) / 2;
-            const yPildora = 730;
-            const radioPildora = 22;
+            const anchoPildora = 590, altoPildora = 45, xPildora = (canvas.width - anchoPildora) / 2, yPildora = 730, radioPildora = 22;
 
             ctx.save();
             ctx.fillStyle = "#B80F56";
@@ -1118,20 +1672,12 @@
             ctx.fillText("ACUMULABLE CON TODAS LAS PROMOS ¡SIN TOPE!", canvas.width / 2, yPildora + (altoPildora / 2));
             ctx.restore();
 
-            const xPie = 30;
-            const yPie = 825;
-            const wPie = 740;
-            const hPie = 125;
-
-            const altoPieza = 105;
-            const yPieza = yPie + (hPie - altoPieza) / 2;
-            const radioPieza = 14;
+            const xPie = 30, yPie = 825, wPie = 740, hPie = 125, altoPieza = 105, yPieza = yPie + (hPie - altoPieza) / 2, radioPieza = 14;
 
             if (imgExclusivo && imgDescargarApp) {
                 const anchoExcl = (imgExclusivo.width / imgExclusivo.height) * altoPieza;
                 const anchoApp = (imgDescargarApp.width / imgDescargarApp.height) * altoPieza;
                 const anchoTotalPieza = anchoExcl + anchoApp;
-                
                 const xPieza = xPie + (wPie - anchoTotalPieza) / 2;
 
                 ctx.fillStyle = "#ffffff";
@@ -1176,18 +1722,11 @@
 
         async function crearCartelFinDeSemana(pData) {
             const canvas = document.createElement('canvas');
-            canvas.width = 800; 
-            canvas.height = 980;
+            canvas.width = 800; canvas.height = 980;
             const ctx = canvas.getContext('2d');
             const pctDescuento = 10;
 
-            const [
-                imgProducto, 
-                imgCarrefour, 
-                imgMiCarrefour,
-                imgExclusivo,
-                imgDescargarApp
-            ] = await Promise.all([
+            const [imgProducto, imgCarrefour, imgMiCarrefour, imgExclusivo, imgDescargarApp] = await Promise.all([
                 cargarImagen(pData.fotoUrl),
                 cargarImagen(URL_CARREFOUR_LOGO),
                 cargarImagen(URL_MI_CARREFOUR_LOGO),
@@ -1204,11 +1743,7 @@
             ctx.fillStyle = gradiente;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            const xBanner = 50;
-            const yBanner = 20;
-            const wBanner = 700;
-            const hBanner = 145;
-            const rBanner = 18;
+            const xBanner = 50, yBanner = 20, wBanner = 700, hBanner = 145, rBanner = 18;
 
             const gradienteBanner = ctx.createLinearGradient(xBanner, yBanner, xBanner + wBanner, yBanner);
             gradienteBanner.addColorStop(0.0, "#26489A");
@@ -1225,10 +1760,7 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            const wPill = 295;
-            const hPill = 34;
-            const xPill = xBanner + wBanner - wPill - 25;
-            const yPill = yBanner + 12;
+            const wPill = 295, hPill = 34, xPill = xBanner + wBanner - wPill - 25, yPill = yBanner + 12;
 
             ctx.fillStyle = "#ffffff";
             ctx.beginPath();
@@ -1246,8 +1778,7 @@
             ctx.textBaseline = "alphabetic";
 
             ctx.font = "italic 900 115px 'Impact', 'Arial Black', sans-serif";
-            const xDiez = xBanner + 20;
-            const yDiez = yBanner + 122;
+            const xDiez = xBanner + 20, yDiez = yBanner + 122;
             ctx.fillText("10", xDiez, yDiez);
 
             const anchoDiez = ctx.measureText("10").width;
@@ -1267,12 +1798,10 @@
             ctx.restore();
 
             ctx.fillStyle = "#ffffff";
-            ctx.lineWidth = 4; 
-            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = 4; ctx.strokeStyle = "#000000";
             ctx.beginPath();
             ctx.roundRect(50, 185, 700, 615, 25);
-            ctx.fill(); 
-            ctx.stroke();
+            ctx.fill(); ctx.stroke();
 
             if (imgCarrefour) {
                 const w = 110, h = (imgCarrefour.height / imgCarrefour.width) * w;
@@ -1302,9 +1831,8 @@
             ctx.fillText(linea, 75, y);
 
             const precioFinal = calcularPrecioFinal(pData, pctDescuento);
-            // Pasar esFindeOViernes = true para activar el color #B80F56
             dibujarCuadroPrecio(ctx, 430, 530, 290, 125, precioFinal, pData, imgMiCarrefour, false, true);
-            
+
             await dibujarCucardaPromo(ctx, pData.promocionSegunda, 90, 195, 155);
 
             ctx.fillStyle = "#000000";
@@ -1312,11 +1840,7 @@
             ctx.textAlign = "center";
             ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 575, 695);
 
-            const anchoPildora = 590;
-            const altoPildora = 45;
-            const xPildora = (canvas.width - anchoPildora) / 2;
-            const yPildora = 730;
-            const radioPildora = 22;
+            const anchoPildora = 590, altoPildora = 45, xPildora = (canvas.width - anchoPildora) / 2, yPildora = 730, radioPildora = 22;
 
             ctx.save();
             ctx.fillStyle = "#B80F56";
@@ -1342,14 +1866,7 @@
             ctx.textBaseline = "middle";
             ctx.fillText("(*)Ver legales en bancodeserviciosfinancieros.com.ar/legales", 390, 965);
 
-            const xPie = 30;
-            const yPie = 825;
-            const wPie = 740;
-            const hPie = 125;
-
-            const altoPieza = 115;
-            const yPieza = yPie + (hPie - altoPieza) / 2;
-            const radioPieza = 14;
+            const xPie = 30, yPie = 825, wPie = 740, hPie = 125, altoPieza = 115, yPieza = yPie + (hPie - altoPieza) / 2, radioPieza = 14;
 
             if (imgExclusivo && imgDescargarApp) {
                 const anchoExcl = (imgExclusivo.width / imgExclusivo.height) * altoPieza;
@@ -1386,43 +1903,41 @@
             return canvas.toDataURL('image/png');
         }
 
-        async function generarTodasLasOfertas() {
-            if (productosAEscanear.length === 0) {
-                alert("Escaneá al menos un producto primero.");
+        async function generarCartelesDeLista(listaOrigen) {
+            if (!listaOrigen || listaOrigen.length === 0) {
+                alert("La lista seleccionada no tiene productos.");
                 return;
             }
 
             const previewGrid = document.getElementById('previewGrid');
-            previewGrid.innerHTML = 'Generando carteles...';
+            previewGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; font-weight: bold; padding: 20px;">🎨 Generando carteles...</p>';
 
             const tipoPromocion = document.getElementById('tipoPromocionSelect').value;
             const fragment = document.createDocumentFragment();
 
-            for (let p of productosAEscanear) {
+            for (let p of listaOrigen) {
                 let urlResult;
-                if (tipoPromocion === 'martes') {
-                    urlResult = await crearCartelMartes(p);
-                } else if (tipoPromocion === 'miercoles') {
-                    urlResult = await crearCartelMiercoles(p);
-                } else if (tipoPromocion === 'jueves') {
-                    urlResult = await crearCartelJueves(p);
-                } else if (tipoPromocion === 'viernes') {
-                    urlResult = await crearCartelViernes(p);
-                } else if (tipoPromocion === 'sabadoDomingo') {
-                    urlResult = await crearCartelFinDeSemana(p);
-                } else if (tipoPromocion === 'mayores60') {
-                    urlResult = await crearCartelMayores60(p);
-                }
+                if (tipoPromocion === 'martes') urlResult = await crearCartelMartes(p);
+                else if (tipoPromocion === 'miercoles') urlResult = await crearCartelMiercoles(p);
+                else if (tipoPromocion === 'jueves') urlResult = await crearCartelJueves(p);
+                else if (tipoPromocion === 'viernes') urlResult = await crearCartelViernes(p);
+                else if (tipoPromocion === 'sabadoDomingo') urlResult = await crearCartelFinDeSemana(p);
 
                 if (urlResult) {
-                    const img = document.createElement('img');
-                    img.src = urlResult;
-                    fragment.appendChild(img);
+                    const cantidadCopias = parseInt(p.copias) || 1;
+                    
+                    for (let i = 0; i < cantidadCopias; i++) {
+                        const img = document.createElement('img');
+                        img.src = urlResult;
+                        fragment.appendChild(img);
+                    }
                 }
             }
 
             previewGrid.innerHTML = '';
             previewGrid.appendChild(fragment);
+
+            window.scrollTo({ top: previewGrid.offsetTop - 20, behavior: 'smooth' });
         }
 
         function imprimirPC() {
