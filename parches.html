@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Generador Masivo de Carteles - Promociones</title>
+    <!-- Librería html2pdf para generar el PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e4e4e4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Panel de control superior */
+        .controls {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 950px;
+            width: 100%;
+        }
+
+        .controls label {
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        /* Contenedor dinámico de casillas de precios */
+        .contenedor-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 180px;
+            overflow-y: auto;
+            padding-right: 5px;
+            width: 260px;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .input-row span {
+            font-size: 13px;
+            font-weight: bold;
+            color: #555;
+            min-width: 25px;
+        }
+
+        .input-row input {
+            padding: 6px 10px;
+            font-size: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 130px;
+        }
+
+        .btn-add {
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-add:hover {
+            background-color: #1b5e20;
+        }
+
+        .btn-del {
+            background-color: #c62828;
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-del:hover {
+            background-color: #8e0000;
+        }
+
+        .controls select {
+            padding: 8px 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .panel-derecha {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .btn-grupo {
+            display: flex;
+            gap: 10px;
+        }
+
+        .controls button.btn-accion {
+            background-color: #000;
+            color: #fff;
+            border: none;
+            padding: 12px 18px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .controls button.btn-accion:hover {
+            background-color: #333;
+        }
+
+        .btn-pdf {
+            background-color: #d32f2f !important;
+        }
+
+        .btn-pdf:hover {
+            background-color: #b71c1c !important;
+        }
+
+        /* Contenedor general */
+        .contenedor-principal {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        /* Separador de días cuando se imprime todo junto */
+        .seccion-dia-titulo {
+            width: 297mm;
+            background: #000;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 10px 20px;
+            box-sizing: border-box;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+
+        /* Simulación de la hoja A4 horizontal en pantalla */
+        .pagina-a4 {
+            width: 297mm;
+            height: 210mm;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            padding: 0;
+            box-sizing: border-box;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            justify-items: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        /* Estilo exacto del cartel (148.5mm x 105mm) */
+        .cartel {
+            width: 148.5mm;
+            height: 105mm;
+            background-color: #fff200 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            border: 3px solid black;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px 10px 10px;
+            text-align: center;
+            position: relative;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        /* Banner promocional tipo Carrefour */
+        .banner-promocional {
+            width: 100%;
+            background-color: #fff200 !important;
+            color: #000000 !important;
+            border: 2px solid black;
+            border-radius: 16px;
+            padding: 6px 10px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* Lado izquierdo: Porcentaje gigante + "de descuento" */
+        .promo-izq {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            font-style: italic;
+            color: #000000 !important;
+            min-width: 110px;
+            justify-content: flex-start;
+        }
+
+        .promo-num {
+            font-size: 42px;
+            font-weight: 900;
+            line-height: 0.85;
+            font-style: italic;
+            font-family: Arial, sans-serif;
+            color: #000000 !important;
+        }
+
+        .promo-texto {
+            font-size: 13px;
+            font-weight: bold;
+            font-style: italic;
+            text-align: left;
+            line-height: 1.2;
+            padding-bottom: 2px;
+            color: #000000 !important;
+            white-space: nowrap;
+        }
+
+        /* Centro absoluto: Píldora HOY grande y destacada */
+        .promo-centro {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 3px;
+            flex: 1;
+            text-align: center;
+            padding: 0 4px;
+        }
+
+        .pildora-hoy {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+            border: 2px solid black;
+            border-radius: 20px;
+            padding: 4px 28px;
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .dia-text {
+            font-size: 17px;
+            font-weight: 900;
+            color: #000000 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+            line-height: 1.1;
+            margin: 0;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        /* Lado derecho vacio para balancear el centrado */
+        .promo-der-spacer {
+            min-width: 110px;
+        }
+
+        /* PRECIO DESTACADO (90px) */
+        .precio-container {
+            font-size: 90px;
+            font-weight: 900;
+            color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 0.85;
+            margin: auto 0;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* ETIQUETA DE PRECIO REGULAR EN DOS LÍNEAS */
+        .precio-regular-badge {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: #fff200;
+            border: 1.5px solid black;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #000;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            text-align: center;
+            line-height: 1.2;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* SECCIÓN PAGANDO CON DESTACADA */
+        .footer-seccion {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            width: 100%;
+        }
+
+        .pagando-con {
+            font-size: 16px;
+            font-weight: 900;
+            margin: 0;
+            letter-spacing: 0.8px;
+            color: black;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+
+        .logo-box {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .logo-box img {
+            max-height: 46px;
+            max-width: 180px;
+            object-fit: contain;
+        }
+
+        .minimo-text {
+            font-size: 11px;
+            font-weight: bold;
+            color: #000000 !important;
+            text-transform: uppercase;
+            margin: 0;
+            letter-spacing: 0.3px;
+        }
+
+        /* Configuración estricta para impresión */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+            .controls, .seccion-dia-titulo {
+                display: none !important;
+            }
+            body {
+                background: none;
+                padding: 0;
+                margin: 0;
+            }
+            .contenedor-principal {
+                display: block;
+            }
+            .pagina-a4 {
+                box-shadow: none;
+                margin: 0;
+                page-break-after: always;
+                break-after: page;
+                width: 297mm;
+                height: 210mm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <label>
+            Precios Regulares:
+            <div id="contenedorInputs" class="contenedor-inputs">
+                <!-- Se generan dinámicamente -->
+            </div>
+        </label>
+
+        <div class="panel-derecha">
+            <label>
+                Día a Imprimir:
+                <select id="selectDia" onchange="guardarYGenerar()">
+                    <option value="miercoles">Miércoles (10% - Cuenta DNI)</option>
+                    <option value="jueves">Jueves (15% - Mercado Pago)</option>
+                    <option value="viernes">Viernes (15% - Cuenta Digital)</option>
+                    <option value="finsemana">Sábado y Domingo (10% - Cuenta Digital)</option>
+                    <option value="todos">-- TODOS LOS DÍAS (SEMANA COMPLETA) --</option>
+                </select>
+            </label>
+
+            <div class="btn-grupo">
+                <button class="btn-accion" onclick="window.print()">Imprimir</button>
+                <button class="btn-accion btn-pdf" onclick="descargarPDF()">Descargar PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor donde se agrupan las páginas A4 -->
+    <div id="contenedorPrincipal" class="contenedor-principal"></div>
+
+    <script>
+        const logos = {
+            dni: "https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/cuentadnilogo.jpg",
+            digital: "https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/cuentadigitallogo.jpg",
+            mp: "https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/mplogo.png"
+        };
+
+        const diasConfig = [
+            { id: "miercoles", nombre: "Miércoles", descuento: 10, logo: logos.dni, minimo: "Mínimo de compra: $15000" },
+            { id: "jueves", nombre: "Jueves", descuento: 15, logo: logos.mp, minimo: "Mínimo de compra: $15000" },
+            { id: "viernes", nombre: "Viernes", descuento: 15, logo: logos.digital, minimo: "" },
+            { id: "finsemana", nombre: "Sábados y Domingos", descuento: 10, logo: logos.digital, minimo: "" }
+        ];
+
+        // Inicializar al cargar la página
+        window.addEventListener('DOMContentLoaded', () => {
+            let guardados = JSON.parse(localStorage.getItem('precios_casillas_carteles'));
+            if (!guardados || guardados.length === 0) {
+                guardados = ["2750", "4500", "1890", "3100", "1200", "2300"];
+            }
+            renderizarInputs(guardados);
+            guardarYGenerar();
+        });
+
+        function renderizarInputs(valores) {
+            const contenedor = document.getElementById('contenedorInputs');
+            contenedor.innerHTML = "";
+
+            valores.forEach((val, index) => {
+                let fila = document.createElement('div');
+                fila.className = 'input-row';
+                fila.innerHTML = `
+                    <span>${index + 1}°</span>
+                    <input type="number" value="${val}" placeholder="Ingrese precio" oninput="guardarYGenerar()">
+                    <button class="btn-add" onclick="agregarInput(${index + 1})">+</button>
+                    ${valores.length > 1 ? `<button class="btn-del" onclick="eliminarInput(${index})">❌</button>` : ''}
+                `;
+                contenedor.appendChild(fila);
+            });
+        }
+
+        function agregarInput(indiceInsersion) {
+            let valores = obtenerValoresInputs();
+            valores.splice(indiceInsersion, 0, ""); // Inserta casilla vacía en la posición siguiente
+            renderizarInputs(valores);
+            guardarYGenerar();
+        }
+
+        function eliminarInput(indice) {
+            let valores = obtenerValoresInputs();
+            valores.splice(indice, 1);
+            if (valores.length === 0) valores.push("");
+            renderizarInputs(valores);
+            guardarYGenerar();
+        }
+
+        function obtenerValoresInputs() {
+            const inputs = document.querySelectorAll('#contenedorInputs input');
+            let valores = [];
+            inputs.forEach(input => {
+                valores.push(input.value);
+            });
+            return valores;
+        }
+
+        function guardarYGenerar() {
+            let valores = obtenerValoresInputs();
+            localStorage.setItem('precios_casillas_carteles', JSON.stringify(valores));
+
+            let opcionSeleccionada = document.getElementById('selectDia').value;
+
+            if (opcionSeleccionada === "todos") {
+                generarTodosLosDias(valores);
+            } else {
+                let configDia = diasConfig.find(d => d.id === opcionSeleccionada);
+                generarCartelesPorDia(valores, configDia);
+            }
+        }
+
+        function construirCartelesHTML(lineas, config) {
+            let cartelesHTML = [];
+            lineas.forEach(linea => {
+                let regular = parseFloat(linea.trim());
+                if (!isNaN(regular) && regular > 0) {
+                    let precioFinal = regular * (1 - config.descuento / 100);
+                    let precioFormateado = Math.round(precioFinal).toString();
+                    let regularFormateado = Math.round(regular).toString();
+                    let textoDiaBanner = config.id === "finsemana" ? "" : config.nombre;
+
+                    cartelesHTML.push(`
+                        <div class="cartel">
+                            <div class="banner-promocional">
+                                <div class="promo-izq">
+                                    <span class="promo-num">${config.descuento}%</span>
+                                    <span class="promo-texto">de<br>descuento</span>
+                                </div>
+                                <div class="promo-centro">
+                                    <div class="pildora-hoy">HOY</div>
+                                    ${textoDiaBanner ? `<div class="dia-text">${textoDiaBanner}</div>` : ''}
+                                </div>
+                                <div class="promo-der-spacer"></div>
+                            </div>
+                            <div class="precio-container">
+                                $${precioFormateado}
+                            </div>
+                            <div class="precio-regular-badge">
+                                PRECIO REGULAR:<br>$${regularFormateado}
+                            </div>
+                            <div class="footer-seccion">
+                                <div class="pagando-con">PAGANDO CON:</div>
+                                <div class="logo-box">
+                                    <img src="${config.logo}" alt="Logo Medio de Pago">
+                                </div>
+                                ${config.minimo ? `<div class="minimo-text">${config.minimo}</div>` : ''}
+                            </div>
+                        </div>
+                    `);
+                }
+            });
+
+            let htmlPaginas = "";
+            for (let i = 0; i < cartelesHTML.length; i += 4) {
+                htmlPaginas += `<div class="pagina-a4">`;
+                for (let j = i; j < i + 4 && j < cartelesHTML.length; j++) {
+                    htmlPaginas += cartelesHTML[j];
+                }
+                htmlPaginas += `</div>`;
+            }
+            return htmlPaginas;
+        }
+
+        function generarCartelesPorDia(valores, config) {
+            document.getElementById('contenedorPrincipal').innerHTML = construirCartelesHTML(valores, config);
+        }
+
+        function generarTodosLosDias(valores) {
+            let htmlCompleto = "";
+            diasConfig.forEach(config => {
+                htmlCompleto += `<div class="seccion-dia-titulo">Promoción: ${config.nombre} (${config.descuento}%)</div>`;
+                htmlCompleto += construirCartelesHTML(valores, config);
+            });
+            document.getElementById('contenedorPrincipal').innerHTML = htmlCompleto;
+        }
+
+        function descargarPDF() {
+            const elemento = document.getElementById('contenedorPrincipal');
+            const opciones = {
+                margin: 0,
+                filename: 'carteles_promociones.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+            html2pdf().from(elemento).set(opciones).save();
+        }
+    </script>
+</body>
+</html>
