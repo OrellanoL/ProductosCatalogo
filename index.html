@@ -1493,7 +1493,7 @@
             ctx.restore();
         }
 
-       async function crearCartelMayores60(pData) {
+      async function crearCartelMayores60(pData) {
     const canvas = document.createElement('canvas');
     canvas.width = 800; canvas.height = 980;
     const ctx = canvas.getContext('2d');
@@ -1616,7 +1616,8 @@
 
     // Cuadro de Precio
     const precioFinal = calcularPrecioFinal(pData, pctDescuento);
-dibujarCuadroPrecio(ctx, 430, 520, 290, 125, precioFinal, pData, imgMiCarrefour, false, true, "#5d2786");
+    dibujarCuadroPrecio(ctx, 430, 520, 290, 125, precioFinal, pData, imgMiCarrefour, false, true, "#5d2786");
+
     // Cucarda Promo
     await dibujarCucardaPromo(ctx, pData.promocionSegunda, 65, 200, 150, pData.promoExclusivaMiCarrefour);
 
@@ -1624,10 +1625,16 @@ dibujarCuadroPrecio(ctx, 430, 520, 290, 125, precioFinal, pData, imgMiCarrefour,
     ctx.fillStyle = "#000000";
     ctx.font = "bold 20px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 575, 685);
+    ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 575, 675);
+
+    // Aclaración: NO ACUMULABLE (arriba de la píldora)
+    ctx.fillStyle = "#000000";
+    ctx.font = "bold 15px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("NO ACUMULABLE CON OTRAS PROMOCIONES VIGENTES", canvas.width / 2, 705);
 
     // Píldora Exclusivo
-    const anchoPildora = 590, altoPildora = 45, xPildora = (canvas.width - anchoPildora) / 2, yPildora = 705, radioPildora = 22;
+    const anchoPildora = 590, altoPildora = 42, xPildora = (canvas.width - anchoPildora) / 2, yPildora = 710, radioPildora = 21;
 
     ctx.save();
     ctx.fillStyle = "#5d2786";
@@ -1644,19 +1651,19 @@ dibujarCuadroPrecio(ctx, 430, 520, 290, 125, precioFinal, pData, imgMiCarrefour,
 
     // Texto de Legales Exclusiones
     ctx.fillStyle = "#5d2786";
-    ctx.font = "800 15px sans-serif";
+    ctx.font = "800 14px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("NO INCLUYE CARNICERÍA, HUEVOS DE GALLINA NI ELECTRO", canvas.width / 2, 765);
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("NO INCLUYE CARNICERÍA, HUEVOS DE GALLINA NI ELECTRO", canvas.width / 2, 767);
 
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 15px sans-serif";
     ctx.textAlign = "center";
     ctx.fillText("TOPE DE DEVOLUCIÓN: $35.000", canvas.width / 2, 802);
 
-    // ================= BLOQUE INFERIOR ESTILO UNIFICADO (TIPO VIERNES) =================
+    // Bloque inferior unificado
     const xPie = 50, yPie = 822, wPie = 700, hPie = 100, radioPieza = 18;
 
-    // 1. Caja contenedora general blanca con borde violeta
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
     ctx.roundRect(xPie, yPie, wPie, hPie, radioPieza);
@@ -1666,7 +1673,6 @@ dibujarCuadroPrecio(ctx, 430, 520, 290, 125, precioFinal, pData, imgMiCarrefour,
     ctx.strokeStyle = "#5d2786";
     ctx.stroke();
 
-    // 2. Dibujar la tarjeta Mi Carrefour Clásico dentro del bloque a la izquierda
     if (imgMiCarrefourClasico) {
         const altoLogo = 78;
         const anchoLogo = (imgMiCarrefourClasico.width / imgMiCarrefourClasico.height) * altoLogo;
@@ -1676,7 +1682,6 @@ dibujarCuadroPrecio(ctx, 430, 520, 290, 125, precioFinal, pData, imgMiCarrefour,
         ctx.drawImage(imgMiCarrefourClasico, xLogo, yLogo, anchoLogo, altoLogo);
     }
 
-    // 3. Textos de registración alineados a la derecha de la tarjeta
     ctx.fillStyle = "#4b1e6d";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
@@ -1686,17 +1691,6 @@ dibujarCuadroPrecio(ctx, 430, 520, 290, 125, precioFinal, pData, imgMiCarrefour,
     ctx.fillStyle = "#250a3d";
     ctx.font = "900 26px sans-serif";
     ctx.fillText("micarrefour.com.ar", xPie + 220, yPie + 66);
-
-    // 4. Legales al Pie
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "13px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "alphabetic";
-    ctx.fillText("(*) Ver bases y condiciones legales en www.carrefour.com.ar", canvas.width / 2, 955);
-
-    return canvas.toDataURL('image/png');
-
-    
 
     // Legales al Pie
     ctx.fillStyle = "#ffffff";
