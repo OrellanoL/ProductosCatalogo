@@ -5,18 +5,18 @@ EAN ,PRODUCTO,PRECIO REGULAR,FOTO
 7791813777403,GASEOSA LIMA LIMON REGULAR NF 7 UP PET X 2LT,2800,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791813777403.webp
 7791813828464,GASEOSA COLA BLACK PEPSI N PET X 2 LT,2800,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791813828464.webp
 7791813888468,GASEOSA COLA REGULAR PEPSI PET N X 2 LT,2800,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791813888468.webp
-7791113003356,MERMELADA DE DURAZNO EMETH POTE X 420 GRS,1490,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791113003356.webp
-7791113003783,MERMELADA DE FRUTILLA EMETH POTE X 420 GRS,1490,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791113003783.webp
-7791113001215,MERMELADA DE DURAZNO LIGHT EMETH POTE X 420 GRS,1490,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791113001215.webp
-7791113001239,MERMELADA FRUTILLA LIGHT EMETH POTE X 420 GRS,1490,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791113001239.webp
+7791113003356,MERMELADA DE DURAZNO/FRUTILLA EMETH POTE X 420 GRS,1490,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/MermeladasEmeth.png
+7791113003783,MERMELADA DE DURAZNO/FRUTILLA EMETH POTE X 420 GRS,1490,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/MermeladasEmeth.png
+7791113001215,MERMELADA DE DURAZNO/FRUTILLA LIGHT EMETH POTE X 420 GRS,1490,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/MermelasLightEmeth.png
+7791113001239,MERMELADA DURAZNO/FRUTILLA LIGHT EMETH POTE X 420 GRS,1490,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/MermelasLightEmeth.png
 7791818001718,ROLLO DE COCINA VUAL 3 X 40 PANOS,1669,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791818001718.webp
 7791818003415,PAPEL HIGIENICO TEXTURADO VUAL 4 X 30 MTS,1450,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791818003415.webp
 7790625010401,SALCHICHA SIN PIEL 66 FLOW PACK X 6 UNI,1290,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790625010401.webp
 7793890258752,PAN BLANCO RODAJAS FINAS LACTAL BOLSA X 460 GRS,3590,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7793890258752.webp
 7793890258790,PAN PARA PANCHO LACTAL X 210 GRS,1890,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7793890258790.webp
 7793281493502,MEDALLON DE CARNE CHACRA NUESTRA ESTUCHE X 2 UNI,1890,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7793281493502.webp
-7791337009684,YOGUR BEBIBLE FRUTILLA GRAN COMPRA SABOR X 900GRS,2390,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791337009684.webp
-7791337009691,YOGUR BEBIBLE VAINILLA GRAN COMPRA SABOR X 900GRS,2390,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791337009691.webp
+7791337009684,YOGUR BEBIBLE FRUTILLA/VAINILLA GRAN COMPRA SABOR X 900GRS,2390,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/Yogures.png
+7791337009691,YOGUR BEBIBLE FRUTILLA/VAINILLA GRAN COMPRA SABOR X 900GRS,2390,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/Yogures.png
 7798060852044,MANTECA COTAMPO X 200 GRS,2699,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7798060852044.webp
 7793253006709,LAVANDINA ORIGINAL DESINFECTANTE AYUDIN X 2 LT,1899,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7793253006709.webp
 7791290796829,JABON PVO CON BICA DUAL ALA MATIC X 800 GRM,1890,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791290796829.webp
@@ -40,61 +40,61 @@ EAN ,PRODUCTO,PRECIO REGULAR,FOTO
 7791293046402,SHAMPOO COLAGENO Y VIT C SEDAL X 340 CC,4149,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791293046402.webp
 7791293045771,SHAMPOO RIZOS DEFINIDOS SEDAL X 340 CC,4149,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791293045771.webp
 7790314080128,VINO TINTO MALBEC PATO CRIOLLO BOT X 750 CC,3399,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790314080128.webp
-7790314080159,Estancia Mendoza Malbec 2025 6X750,2869,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790314080159.webp
-7790314080180,Estancia Mendoza Cabernet-Malbec 2025 6x750,2869,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790314080180.webp
-7790314080203,Estancia Mendoza Chenin-Chardonnay Dulce 2025 6x750,2869,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790314080203.webp
-7790154009129,APERITIV C ALC GINTONIC LIMON SHOOTER LATA X 473CC,999,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790154009129.webp
-7790154009143,APERITIVO C ALC VODKA Y POME SHOOTER LATA X 473 CC,999,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790154009143.webp
-7790154009136,APERITIVO C ALC VODKA Y LIMA SHOOTER LATA X 473 CC,999,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790154009136.webp
+7790314080159,Estancia Mendoza MALBEC/CABERNET/CHARDONNAY 2025 6X750,2869,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/VinosEstanciaMendoza.png
+7790314080180,Estancia Mendoza MALBEC/CABERNET/CHARDONNAY  2025 6x750,2869,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/VinosEstanciaMendoza.png
+7790314080203,Estancia Mendoza MALBEC/CABERNET/CHARDONNAY  2025 6x750,2869,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/VinosEstanciaMendoza.png
+7790154009129,APERITIV C ALC VARIOS SABORES SHOOTER LATA X 473CC,999,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/Shotter.png
+7790154009143,APERITIVO C ALC VARIOS SABORES SHOOTER LATA X 473 CC,999,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/Shotter.png
+7790154009136,APERITIVO C ALC VARIOS SABORES SHOOTER LATA X 473 CC,999,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/Shotter.png
 7790154009068,FERNET COLA BORETTO X 473 CC,999,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790154009068.webp
 7798078450485,ARROZ LARGO FINO 00000 CRUCERO X 1 KG,1190,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7798078450485.webp
 7792200000128,BIZCOCHOS AGRIDULCES 9 DE ORO BOLSA X 200 GRS,999,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7792200000128.webp
 7792200000159,BIZCOCHOS DE GRASA 9 DE ORO BOLSA X 200 GRS,999,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7792200000159.webp
 8445291121881,CACAO EN POLVO STACC SPREMIX NESQUIK X 360 GRS,3825,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/8445291121881.webp
-7798036830311,GALLETITAS BANADAS NARANJA CELOSAS CORAZON 100 GRM,950,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7798036830311.webp
-7791324157046,GALLETITAS CHOCOLATE RELL VAIN MINI PITUSAS X 160G,1100,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791324157046.webp
+7798036830311,GALLETITAS BANADAS NARANJA CELOSAS CORAZON 100 GRM,950,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7798036830311.web
+7791324157046,GALLETITAS CHOCOLATE RELL VARIOS SABORES MINI PITUSAS X 160G,1100,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/Pitusas.png
 7798036830168,GALLETITAS DULCES BANADAS CELOSAS X 110 GRS,890,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7798036830168.webp
 7798048730913,GALLETITAS PEPA C BTATA DELICIAS DE LA NONA X300GR,1590,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7798048730913.webp
 7798048730876,GALLETITAS PEPAS DELICIAS DE LA NONA X 350 GRS,1590,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7798048730876.webp
 7798036830250,GALLETITAS POLVORON VAINILLA CELOSAS X 120 GRS,749,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7798036830250.webp
-7791324157466,GALLETITAS RELL VAIN FRUTIL MINI PITUSAS X 160 GRS,1100,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791324157466.webp
-7791324157022,GALLETITAS RELL VAIN MINI PITUSAS BOLSA X 160 GRS,1100,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791324157022.webp
-7791324157084,GALLETITAS RELL VAINILLA MOUSE MINI PITUSAS X 160G,1100,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791324157084.webp
-7792180146090,GALLETITAS SNACK CLASICAS CRUJITAS FP X 120 GRM,990,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7792180146090.webp
-7792180146137,GALLETITAS SNACK JAMON SERRA CRUJITAS FP X 120 GRM,990,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7792180146137.webp
-7792180146106,GALLETITAS SNACK QUESO CRUJITAS FP X 120 GRM,990,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7792180146106.webp
+7791324157466,GALLETITAS RELL VARIOS SABORES MINI PITUSAS X 160 GRS,1100,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/Pitusas.png
+7791324157022,GALLETITAS RELL VARIOS SABORES MINI PITUSAS BOLSA X 160 GRS,1100,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/Pitusas.png
+7791324157084,GALLETITAS RELL VARIOS SABORES MINI PITUSAS X 160G,1100,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/Pitusas.png
+7792180146090,GALLETITAS SNACK VARIOS SABORES CRUJITAS FP X 120 GRM,990,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/Crujitas.png
+7792180146137,GALLETITAS SNACK VARIOS SERRA CRUJITAS FP X 120 GRM,990,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/Crujitas.png
+7792180146106,GALLETITAS SNACK VARIOS SABORES CRUJITAS FP X 120 GRM,990,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7792180146106.webp
 7794000006072,MAYONESA REGULAR HELLMANNS DOYPACK X 475 GRS,2490,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7794000006072.webp
-7791113003356,MERMELADA DE DURAZNO EMETH POTE X 420 GRS,1499,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791113003356.webp
-7791113001215,MERMELADA DE DURAZNO LIGHT EMETH POTE X 420 GRS,1499,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791113001215.webp
-7791113003783,MERMELADA DE FRUTILLA EMETH POTE X 420 GRS,1499,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791113003783.webp
-7791113001239,MERMELADA FRUTILLA LIGHT EMETH POTE X 420 GRS,1499,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791113001239.webp
+7791113003356,MERMELADA DE FRUTILLA/DURAZNO EMETH POTE X 420 GRS,1499,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/MermeladaEmeth.png
+7791113001215,MERMELADA DE FRUTILLA/DURAZNO LIGHT EMETH POTE X 420 GRS,1499,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/MermelasLightEmeth.png
+7791113003783,MERMELADA DE FRUTILLA/DURAZNO EMETH POTE X 420 GRS,1499,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/MermeladasEmeth.png
+7791113001239,MERMELADA FRUTILLA/DURAZNO LIGHT EMETH POTE X 420 GRS,1499,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/MermelasLightEmeth.png
 7792900092706,SAL FINA DOS ESTRELLAS PAQUETE X 500 GRS,749,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7792900092706.webp
 7790387015317,YERBA MATE BAJO POLVO MANANITA 4FLEX X 1 KG,3800,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790387015317.webp
 7792612000709,HARINA DE TRIGO TIPO 000 TASSARA X 1 KG,699,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7792612000709.webp
 7791876000319,PURE DE TOMATES SIN GLUTEN CORPER X 520 GRS,790,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791876000319.webp
 7798316700815,ACEITE GIRASOL LEGITIMO X 1.5L,5400,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7798316700815.webp
 7792350067019,ARVEJAS SECAS REMOJADAS INALPA LATA X 300 GRS,590,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7792350067019.webp
-7790070320315,FIDEOS MOSTACHOL RAYADO FAVORITA X 500 GRS,799,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790070320315.webp
-7790070320285,FIDEOS SPAGHETTI FAVORITA X 500 GRS,799,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790070320285.webp
-7790070320292,FIDEOS TALLARIN FAVORITA X 500 GRS,799,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790070320292.webp
-7790070320308,FIDEOS TIRABUZON FAVORITA X 500 GRS,799,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790070320308.webp
+7790070320315,FIDEOS SPAG/TALL/TIRABUZON/MOSTACHOLE FAVORITA X 500 GRS,799,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/FideosFavorita.png
+7790070320285,FIDEOS SPAG/TALL/TIRABUZON/MOSTACHOLE FAVORITA X 500 GRS,799,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/FideosFavorita.png
+7790070320292,FIDEOS SPAG/TALL/TIRABUZON/MOSTACHOLE FAVORITA X 500 GRS,799,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/FideosFavorita.png
+7790070320308,FIDEOS SPAG/TALL/TIRABUZON/MOSTACHOLE FAVORITA X 500 GRS,799,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/FideosFavorita.png
 7794270035512,HARINA 000 BARBARA X 1 KG,729,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7794270035512.webp
 7792180004567,HARINA CON LEVADURA PIZZA PUREZA X 1 KG,1749,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7792180004567.webp
-7790360720382,PATE DE FOIE SWIFT LATA X 90 GRS,990,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790360720382.webp
-7790360720115,PICADILLO DE CARNE SWIFT LATA X 90 GRS.,990,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790360720115.webp
+7790360720382,PATE/PICADILLO SWIFT LATA X 90 GRS,990,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/PateyPicadillo.png
+7790360720115,PATE/PICADILLO SWIFT LATA X 90 GRS.,990,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/PateyPicadillo.png
 7790580146115,PURE DE TOMATE ARCOR BRIK X 520 GRS,890,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790580146115.webp
 7790130000294,VINAGRE DE ALCOHOL ALCAZAR PET X 1 LT,979,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790130000294.webp
-7791843008294,VINO TINTO BORGONA VINAS DE BALBO X 1125 CC.,2600,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791843008294.webp
-7791843008317,VINO BLANCO CHABLIS VINAS DE BALBO X 1125 CC,2600,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791843008317.webp
-7791670027482,VINO TINTO CLASICO VINAS DE ALVEAR BOT X 1.125 LT,2600,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791670027482.webp
-7791670027505,VINO BLANCO CLASICO VINAS DE ALVEAR BOT X 1.125 LT,2600,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791670027505.webp
-7790314080142,VINO TINTO BLEND III CANCILLER BOT X 1125 CC,2600,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790314080142.webp
-7790314080463,VINO BLANCO DULCE BLEND CANCILLER BOT X 1125 CC,2600,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790314080463.webp
-7790984003557,VINO TINTO MALBEC LA FUSTA BOT X 750 CC,2800,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790984003557.webp
-7790984003588,VINO BLANCO DULCE TARDIO LA FUSTA BOT X 750 CC,2800,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790984003588.webp
-7790984003564,VINO TINTO CABERNET SAUV LA FUSTA BOT X 750 CC,2800,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7790984003564.webp
+7791843008294,VINO TINTO/BLANCO BORGONA VINAS DE BALBO X 1125 CC.,2600,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/VinosViñasdelBalbo.png
+7791843008317,VINO TINTO/BLANCO CHABLIS VINAS DE BALBO X 1125 CC,2600,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/VinosViñasdelBalbo.png
+7791670027482,VINO TINTO/BLANCO CLASICO VINAS DE ALVEAR BOT X 1.125 LT,2600,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/VinosViñasdeAlvear.png
+7791670027505,VINO TINTO/BLANCO CLASICO VINAS DE ALVEAR BOT X 1.125 LT,2600,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/VinosViñasdeAlvear.png
+7790314080142,VINO BLANCO/TINTO BLEND CANCILLER BOT X 1125 CC,2600,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/VinosCanciller.png
+7790314080463,VINO BLANCO/TINTO BLEND CANCILLER BOT X 1125 CC,2600,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/VinosCanciller.png
+7790984003557,VINO CABERNET/MALBEC/BLANCO DULCE LA FUSTA BOT X 750 CC,2800,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/VinosLaFusta.png
+7790984003588,VINO CABERNET/MALBEC/BLANCO DULCE LA FUSTA BOT X 750 CC,2800,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/VinosLaFusta.png
+7790984003564,VINO CABERNET/MALBEC/BLANCO DULCE LA FUSTA BOT X 750 CC,2800,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/VinosLaFusta.png
 7791720036273,PURE DE TOMATES BULNEZ X 520 GRS,690,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7791720036273.webp
-7794080001554,FIDEOS MOSTACHOLE DON BERNABEU X 500 GRS,649,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7794080001554.webp
-7794080001561,FIDEOS TIRABUZON DON BERNABEU X 500 GRS,649,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7794080001561.webp
-7794080001578,FIDEOS TALLARIN DON BERNABEU X 500 GRS,649,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7794080001578.webp
-7794080001585,FIDEOS SPAGUETTI DON BERNABEU X 500 GRS,649,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/7794080001585.webp
+7794080001554,FIDEOS SPAG/TALL/TIRABUZON/MOSTACHOLE  DON BERNABEU X 500 GRS,649,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/FideosBernabeu.png
+7794080001561,FIDEOS SPAG/TALL/TIRABUZON/MOSTACHOLE  DON BERNABEU X 500 GRS,649,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/FideosBernabeu.png
+7794080001578,FIDEOS SPAG/TALL/TIRABUZON/MOSTACHOLE DON BERNABEU X 500 GRS,649,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/FideosBernabeu.png
+7794080001585,FIDEOS SPAG/TALL/TIRABUZON/MOSTACHOLE DON BERNABEU X 500 GRS,649,https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/FideosBernabeu
