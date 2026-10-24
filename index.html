@@ -1501,8 +1501,8 @@
             if (promocionSegunda.startsWith('directo_')) {
                 const pctVal = promocionSegunda.replace('directo_', '');
                 const radio = 42; 
-                const posX = x + 20; 
-                const posY = y + 40;
+                const posX = x + 35; 
+                const posY = y + 25;
 
                 ctx.fillStyle = "#e50012";
                 ctx.beginPath();
@@ -1533,8 +1533,8 @@
             else if (['2x1', '3x2', '4x2', '4x3'].includes(promocionSegunda)) {
                 const wPildora = 195; 
                 const hPildora = 65;  
-                const xPildora = x-5; 
-                const yPildora = y; 
+                const xPildora = x-20; 
+                const yPildora = y-20; 
 
                 ctx.fillStyle = "#e50012";
                 ctx.beginPath();
@@ -1572,8 +1572,8 @@
                 }
             }
             else if (['50', '70', '80'].includes(promocionSegunda)) {
-                const xPildora = x-5; 
-                const yPildora = y; 
+                const xPildora = x-25; 
+                const yPildora = y-15; 
                 const wPildora = 205;
                 const hPildora = 75;
 
