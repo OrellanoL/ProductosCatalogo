@@ -336,7 +336,7 @@
                 <option value="jueves">Jueves - Mercado Pago (15%)</option>
                 <option value="viernes">Viernes - Cuenta Digital (15%)</option>
                 <option value="sabadoDomingo" selected>Sábado y Domingo - Cuenta Digital (10%)</option>
-                <!--<option value="mayores60">Mayores de 60 / ANSES (10%)</option> -->
+                <option value="mayores60">Mayores de 60 / ANSES (10%)</option> 
                 <option value="modoBna" selected>Miércoles - MODO </option>
             </select>
         </div>
@@ -574,6 +574,7 @@
         const URL_MODO_LOGO = "https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/modologo.webp";
         const URL_MODO_ACLARACIONES = "https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/modoaclaraciones.jpg";
         const URL_PLANTILLA_MODO = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/Plantilla_Modo.png';
+        const URL_PLANTILLA_MAYOR_60 = 'https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/Plantilla_MayorDe60.png';
 
         let catalogoProductos = {}; 
         let listaCatalogoArreglo = [];
@@ -1444,8 +1445,13 @@
                 } else if (tipoDia === 'viernes' || tipoDia === 'finde') {
                     colorFondo = "#b81756";
                     colorTexto = "#ffffff";
-                } else if (tipoDia === 'miercoles') {
+                } 
+                else if (tipoDia === 'miercoles') {
                     colorFondo = "#26a94b";
+                    colorTexto = "#ffffff";
+                }
+                else if (tipoDia === 'mayores60') { // <-- Agregamos esta línea para el nuevo día
+                    colorFondo = "#6b4795";
                     colorTexto = "#ffffff";
                 }
 
@@ -1610,196 +1616,27 @@
 
             ctx.restore();
         }
+// ================= MAYORES DE 60 / ANSES =================
+async function crearCartelMayores60(pData) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 800; canvas.height = 980;
+    const ctx = canvas.getContext('2d');
 
-        async function crearCartelMayores60(pData) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 800; canvas.height = 980;
-            const ctx = canvas.getContext('2d');
-            const pctDescuento = 10; 
+    const [imgPlantilla, imgProducto, imgMiCarrefour] = await Promise.all([
+        cargarImagen(URL_PLANTILLA_MAYOR_60),
+        cargarImagen(pData.fotoUrl),
+        cargarImagen(URL_MI_CARREFOUR_LOGO)
+    ]);
 
-            const [imgProducto, imgCarrefour, imgMiCarrefour, imgMiCarrefourClasico] = await Promise.all([
-                cargarImagen(pData.fotoUrl),
-                cargarImagen(URL_CARREFOUR_LOGO),
-                cargarImagen(URL_MI_CARREFOUR_LOGO),
-                cargarImagen(URL_MI_CARREFOUR_CLASICO)
-            ]);
+    if (imgPlantilla) ctx.drawImage(imgPlantilla, 0, 0, canvas.width, canvas.height);
 
-            const gradiente = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            gradiente.addColorStop(0.0, "#250a3d");
-            gradiente.addColorStop(0.4, "#4b1e6d");
-            gradiente.addColorStop(0.75, "#682e8f");
-            gradiente.addColorStop(1.0, "#32114d");
+    // Usamos el mismo motor centralizado (10% de descuento)
+    dibujarContenidoCentral(ctx, canvas, pData, imgProducto, imgMiCarrefour, 10, 'mayores60');
 
-            ctx.fillStyle = gradiente;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+    await dibujarCucardaPromo(ctx, pData.promocionSegunda, 65, 195, pData.promoExclusivaMiCarrefour);
 
-            const xBanner = 50, yBanner = 20, wBanner = 700, hBanner = 145, rBanner = 18;
-            const gradienteBanner = ctx.createLinearGradient(xBanner, yBanner, xBanner + wBanner, yBanner);
-            gradienteBanner.addColorStop(0.0, "#3b1359");
-            gradienteBanner.addColorStop(0.5, "#5d2786");
-            gradienteBanner.addColorStop(1.0, "#7b38ad");
-
-            ctx.save();
-            ctx.fillStyle = gradienteBanner;
-            ctx.beginPath();
-            ctx.roundRect(xBanner, yBanner, wBanner, hBanner, rBanner);
-            ctx.fill();
-
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            const wPill = 310, hPill = 34, xPill = xBanner + wBanner - wPill - 20, yPill = yBanner + 12;
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.roundRect(xPill, yPill, wPill, hPill, 17);
-            ctx.fill();
-
-            ctx.fillStyle = "#4b1e6d";
-            ctx.font = "bold 20px sans-serif";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText("Lunes a Miércoles", xPill + (wPill / 2), yPill + (hPill / 2));
-
-            ctx.fillStyle = "#ffffff";
-            ctx.textAlign = "left";
-            ctx.textBaseline = "alphabetic";
-
-            const textoPct = "10";
-            ctx.font = "italic 900 115px 'Impact', 'Arial Black', sans-serif";
-            const xDiez = xBanner + 20, yDiez = yBanner + 122;
-            ctx.fillText(textoPct, xDiez, yDiez);
-
-            const anchoDiez = ctx.measureText(textoPct).width;
-            const xSimboloPct = xDiez + anchoDiez + 10;
-
-            ctx.font = "italic 900 68px 'Impact', 'Arial Black', sans-serif";
-            ctx.fillText("%", xSimboloPct, yBanner + 100);
-
-            ctx.font = "bold 20px sans-serif";
-            ctx.fillText("de descuento", xSimboloPct, yBanner + 120);
-
-            ctx.font = "bold 22px sans-serif";
-            ctx.fillText("MAYORES DE 60 AÑOS", xBanner + 355, yBanner + 80);
-            ctx.font = "900 22px sans-serif";
-            ctx.fillText("Y ANSES (*)", xBanner + 355, yBanner + 112);
-
-            ctx.restore();
-
-            ctx.fillStyle = "#ffffff";
-            ctx.lineWidth = 4; ctx.strokeStyle = "#4b1e6d";
-            ctx.beginPath();
-            ctx.roundRect(50, 185, 700, 595, 25);
-            ctx.fill(); ctx.stroke();
-
-            if (imgCarrefour) {
-                const w = 110, h = (imgCarrefour.height / imgCarrefour.width) * w;
-                ctx.drawImage(imgCarrefour, 610, 205, w, h);
-            }
-
-            const tienePromo = pData.promocionSegunda && pData.promocionSegunda !== 'ninguna';
-            let yFotoProducto = tienePromo ? 370 : 330;
-            let imgMaxH = tienePromo ? 220 : 280;
-
-            if (imgProducto) {
-                const imgMaxW = 440;
-                let scale = Math.min(imgMaxW / imgProducto.width, imgMaxH / imgProducto.height);
-                let w = imgProducto.width * scale, h = imgProducto.height * scale;
-                ctx.drawImage(imgProducto, (canvas.width - w) / 2, yFotoProducto - (h / 2), w, h);
-            }
-
-            ctx.fillStyle = "#000000";
-            ctx.textAlign = "left";
-            ctx.font = "bold 24px sans-serif";
-
-            const palabras = pData.producto.split(" ");
-            let linea = "", y = 555; 
-            for (let n = 0; n < palabras.length; n++) {
-                let testLinea = linea + palabras[n] + " ";
-                if (ctx.measureText(testLinea).width > 310 && n > 0) {
-                    ctx.fillText(linea, 75, y);
-                    linea = palabras[n] + " "; y += 30;
-                } else { linea = testLinea; }
-            }
-            ctx.fillText(linea, 75, y);
-
-            const precioFinal = calcularPrecioFinal(pData, pctDescuento);
-            dibujarCuadroPrecio(ctx, 430, 520, 290, 125, precioFinal, pData, imgMiCarrefour, false, true, "#5d2786");
-
-            await dibujarCucardaPromo(ctx, pData.promocionSegunda, 65, 200, 150, pData.promoExclusivaMiCarrefour);
-
-            ctx.fillStyle = "#000000";
-            ctx.font = "bold 20px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("PRECIO REGULAR $" + formatearPrecio(pData.precioRegular), 575, 675);
-
-            ctx.fillStyle = "#000000";
-            ctx.font = "bold 15px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("NO ACUMULABLE CON OTRAS PROMOCIONES VIGENTES", canvas.width / 2, 705);
-
-            const anchoPildora = 590, altoPildora = 42, xPildora = (canvas.width - anchoPildora) / 2, yPildora = 710, radioPildora = 21;
-            ctx.save();
-            ctx.fillStyle = "#5d2786";
-            ctx.beginPath();
-            ctx.roundRect(xPildora, yPildora, anchoPildora, altoPildora, radioPildora);
-            ctx.fill();
-
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 21px sans-serif";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText("EXCLUSIVO CLIENTES MI CARREFOUR", canvas.width / 2, yPildora + (altoPildora / 2));
-            ctx.restore();
-
-            ctx.fillStyle = "#5d2786";
-            ctx.font = "800 14px sans-serif";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "alphabetic";
-            ctx.fillText("NO INCLUYE CARNICERÍA, HUEVOS DE GALLINA NI ELECTRO", canvas.width / 2, 767);
-
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 15px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("TOPE DE DEVOLUCIÓN: $35.000", canvas.width / 2, 802);
-
-            const xPie = 50, yPie = 822, wPie = 700, hPie = 100, radioPieza = 18;
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.roundRect(xPie, yPie, wPie, hPie, radioPieza);
-            ctx.fill();
-
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = "#5d2786";
-            ctx.stroke();
-
-            if (imgMiCarrefourClasico) {
-                const altoLogo = 78;
-                const anchoLogo = (imgMiCarrefourClasico.width / imgMiCarrefourClasico.height) * altoLogo;
-                const xLogo = xPie + 20;
-                const yLogo = yPie + (hPie - altoLogo) / 2;
-                ctx.drawImage(imgMiCarrefourClasico, xLogo, yLogo, anchoLogo, altoLogo);
-            }
-
-            ctx.fillStyle = "#4b1e6d";
-            ctx.textAlign = "left";
-            ctx.textBaseline = "middle";
-            ctx.font = "bold 21px sans-serif";
-            ctx.fillText("Registrate gratis en:", xPie + 220, yPie + 34);
-
-            ctx.fillStyle = "#250a3d";
-            ctx.font = "900 26px sans-serif";
-            ctx.fillText("micarrefour.com.ar", xPie + 220, yPie + 66);
-
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "13px sans-serif";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "alphabetic";
-            ctx.fillText("(*) Ver bases y condiciones legales en www.carrefour.com.ar", canvas.width / 2, 955);
-
-            return canvas.toDataURL('image/png');
-        }
-
+    return canvas.toDataURL('image/png');
+}
         
 
         async function crearCartelMartes(pData) {
