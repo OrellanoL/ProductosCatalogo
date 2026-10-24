@@ -490,6 +490,28 @@
                 <img id="pcModalBarcodeImg" src="" alt="Código de barra">
             </div>
 
+            <!-- OPCIONES DE IMAGEN PARA PRODUCTOS NUEVOS -->
+            <div id="contenedorImagenManual" style="margin-bottom: 15px; background: #fff7ed; border: 1px solid #ffedd5; padding: 12px; border-radius: 8px; text-align: left; display: none;">
+                <label style="font-size: 0.8rem; color: #c2410c; font-weight: bold; margin-bottom: 8px;">📷 Opciones para la imagen del producto:</label>
+                
+                <!-- Selector de método -->
+                <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+                    <button type="button" class="btn-manual" style="background: #ea580c; font-size: 0.75rem; padding: 6px 10px; flex: 1;" onclick="mostrarOpcionFoto('url')">🌐 Pegar Link</button>
+                    <button type="button" class="btn-manual" style="background: #0284c7; font-size: 0.75rem; padding: 6px 10px; flex: 1;" onclick="mostrarOpcionFoto('archivo')">📁 Subir Archivo</button>
+                    <button type="button" class="btn-manual" style="background: #16a34a; font-size: 0.75rem; padding: 6px 10px; flex: 1;" id="btnNavegarCarrefour">🔍 Buscar en Web</button>
+                </div>
+
+                <!-- Opción 1: Input URL -->
+                <div id="boxOpcionUrl">
+                    <input type="text" id="pcInputUrlFotoManual" placeholder="https://ejemplo.com/imagen.jpg" style="font-size: 0.8rem; padding: 6px;">
+                </div>
+
+                <!-- Opción 2: Subir archivo -->
+                <div id="boxOpcionArchivo" style="display: none;">
+                    <input type="file" id="pcInputArchivoFoto" accept="image/*" style="font-size: 0.8rem; padding: 4px;" onchange="procesarFotoLocal(this)">
+                </div>
+            </div>
+
             <!-- CONTROLES ADICIONALES DE CARGA CON PROMOS DINÁMICAS -->
             <div class="modal-config-grid">
                 <div>
@@ -758,6 +780,25 @@
                 localStorage.removeItem('productosAEscanear');
                 actualizarListaUI();
                 document.getElementById('previewGrid').innerHTML = '';
+            }
+        }
+
+        // Cambiar entre la opción de Link y Subir Archivo
+        function mostrarOpcionFoto(tipo) {
+            document.getElementById('boxOpcionUrl').style.display = (tipo === 'url') ? 'block' : 'none';
+            document.getElementById('boxOpcionArchivo').style.display = (tipo === 'archivo') ? 'block' : 'none';
+        }
+
+        // Convertir archivo local subido desde el dispositivo a formato interpretable por Canvas
+        function procesarFotoLocal(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (productoActualPC) {
+                        productoActualPC.fotoUrl = e.target.result; // Data URL de la imagen local
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
             }
         }
 
@@ -1089,7 +1130,7 @@
         }
 
         /* ================= MODAL DE CARGA PC (INDIVIDUAL / MASIVO / EDICIÓN) ================= */
-        function abrirModalCargaIndividualPC(ean) {
+        async function abrirModalCargaIndividualPC(ean) {
             pcModo = 'individual';
             indiceEdicionActual = null;
             document.getElementById('btnAnteriorPC').style.display = 'none';
@@ -1100,15 +1141,36 @@
             }
 
             let prodBase = catalogoProductos[ean];
+            const boxFotoManual = document.getElementById('contenedorImagenManual');
+            const inputUrl = document.getElementById('pcInputUrlFotoManual');
+            const inputArchivo = document.getElementById('pcInputArchivoFoto');
+            const btnWeb = document.getElementById('btnNavegarCarrefour');
+
             if (!prodBase) {
-                const nombreManual = prompt(`El EAN ${ean} no existe en el catálogo.\n\nIngresá el nombre:`);
+                const nombreManual = prompt(`⚠️ El EAN ${ean} no existe en el catálogo.\n\nIngresá el nombre del producto:`);
                 if (!nombreManual) return;
+
+                const nombreLimpio = nombreManual.toUpperCase();
+
+                // Mostramos el panel de opciones de foto
+                boxFotoManual.style.display = 'block';
+                inputUrl.value = '';
+                if (inputArchivo) inputArchivo.value = '';
+                mostrarOpcionFoto('url');
+
+                // Configuramos el botón que lleva a Carrefour.com.ar con la búsqueda preparada
+                btnWeb.onclick = () => {
+                    const terminoBusqueda = encodeURIComponent(ean || nombreLimpio);
+                    window.open(`https://www.carrefour.com.ar/${terminoBusqueda}`, '_blank');
+                };
 
                 prodBase = {
                     ean: ean,
-                    producto: nombreManual.toUpperCase(),
-                    fotoUrl: `https://raw.githubusercontent.com/OrellanoL/ProductosCatalogo/main/${ean}.webp`
+                    producto: nombreLimpio,
+                    fotoUrl: null
                 };
+            } else {
+                boxFotoManual.style.display = 'none';
             }
 
             productoActualPC = {
@@ -1234,6 +1296,12 @@
                 return;
             }
 
+            // Dentro de guardarYAvanzarPC():
+        const inputUrlFoto = document.getElementById('pcInputUrlFotoManual');
+        if (inputUrlFoto && inputUrlFoto.value.trim() !== '') {
+            productoActualPC.fotoUrl = inputUrlFoto.value.trim();
+        }
+
             const precioVal = parseFloat(document.getElementById('pcInputPrecio').value) || 0;
             const esMiCarrefourVal = document.getElementById('pcModalCheckMiCarrefour').checked;
             const copiasVal = parseInt(document.getElementById('pcModalInputCopias').value) || 1;
@@ -1298,6 +1366,8 @@
                 img.src = src;
             });
         }
+        
+
 
         function dibujarContenidoCentral(ctx, canvas, pData, imgProducto, imgMiCarrefour, pctDescuento, tipoDia) {
     // 1. Imagen del Producto (Calculamos su altura y posición real)
